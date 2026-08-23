@@ -34,7 +34,7 @@ if (Test-Path $venvPython) {
     Write-Host "[WARNING] venv not found! Creating venv..." -ForegroundColor Yellow
     python -m venv "$scriptDir\venv"
     & "$venvPython" -m pip install --upgrade pip
-    & "$venvPython" -m pip install -r "$scriptDir\requirements.txt"
+    & "$venvPython" -m pip install -r "$scriptDir\requirements-full.txt"
 }
 
 # 4. Start FastAPI in new terminal

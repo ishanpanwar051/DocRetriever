@@ -119,7 +119,7 @@ py -3.11 -m venv venv
 
 # Install pinned dependencies
 pip install --upgrade pip
-pip install -r requirements.txt
+pip install -r requirements-full.txt (full stack) or -r requirements.txt (dashboard only)
 
 # Initialize environment configuration
 Copy-Item .env.example .env
