@@ -1,0 +1,63 @@
+# === Python ===
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# === Virtual Environment ===
+venv/
+env/
+.venv/
+ENV/
+
+# === Environment Variables — NEVER COMMIT .env ===
+.env
+*.env.local
+*.env.production
+
+# === IDE / Editor ===
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# === Corpus (large files, re-downloadable via scripts/download_corpus.py) ===
+corpus/fastapi_docs/
+corpus/postgres_docs/
+!corpus/.gitkeep
+
+# === Generated Eval Reports (commit only final curated ones) ===
+eval/reports/runs/
+!eval/reports/.gitkeep
+!eval/data/.gitkeep
+
+# === Downloaded ML Models ===
+*.bin
+*.safetensors
+*.onnx
+models/
+.cache/
+
+# === Pytest / Coverage ===
+.pytest_cache/
+htmlcov/
+.coverage
+coverage.xml
+
+# === Logs ===
+*.log
+logs/
+
+# === Jupyter ===
+.ipynb_checkpoints/
+*.ipynb
+
+powershell.bat
+

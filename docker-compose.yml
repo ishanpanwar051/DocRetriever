@@ -1,0 +1,38 @@
+version: "3.9"
+
+# WHY Docker Compose?
+# - Reproducible: same postgres+pgvector version on every machine
+# - pgvector installed automatically (no manual extension setup)
+# - Interview answer: "containerized infra = zero 'works on my machine' problems"
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16       # WHY this image: pgvector pre-bundled, no manual install
+    container_name: docretriever_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-docretriever}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-docretriever_pass}
+      POSTGRES_DB: ${POSTGRES_DB:-docretriever_db}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data          # persist data between restarts
+      - ./scripts/init_db.sql:/docker-entrypoint-initdb.d/01_init.sql  # auto-run once
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-docretriever} -d ${POSTGRES_DB:-docretriever_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+volumes:
+  postgres_data:
+    driver: local
+
+# ── Quick Commands ──────────────────────────────────────────────────────────────
+#  Start:          docker compose up -d
+#  Stop:           docker compose down
+#  Fresh start:    docker compose down -v && docker compose up -d
+#  Logs:           docker compose logs -f postgres
+#  psql shell:     docker exec -it docretriever_postgres psql -U docretriever -d docretriever_db
