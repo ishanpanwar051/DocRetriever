@@ -46,19 +46,23 @@ def check_docker():
         print(f"      ⚠️ Docker not detected or not running: {e}")
         print("      (If you are running PostgreSQL locally or in Docker Desktop, please ensure it is started)")
 
-def check_ollama():
-    print("[2/4] Checking Ollama...")
+def check_groq():
+    print("[2/4] Checking Groq API...")
     try:
-        import urllib.request
-        req = urllib.request.Request("http://localhost:11434/api/tags")
-        with urllib.request.urlopen(req, timeout=3) as response:
-            if response.status == 200:
-                print("      ✅ Ollama service is active.")
-                return
+        import httpx
+        from config.settings import settings
+        resp = httpx.get(
+            f"{settings.groq_base_url}/models",
+            headers={"Authorization": f"Bearer {settings.groq_api_key}"},
+            timeout=5,
+        )
+        if resp.status_code == 200:
+            print("      ✅ Groq API is reachable.")
+            return
     except Exception:
         pass
-    print("      ⚠️ Ollama service not responding at http://localhost:11434")
-    print("      Tip: Open terminal and run 'ollama serve' if not running.")
+    print("      ⚠️ Groq API not reachable.")
+    print("      Tip: Set GROQ_API_KEY in .env (get free key at https://console.groq.com/keys)")
 
 def stream_output(process, prefix):
     for line in iter(process.stdout.readline, ''):
@@ -69,7 +73,7 @@ def main():
     print_header()
     check_env()
     check_docker()
-    check_ollama()
+    check_groq()
 
     print()
     print("[3/4] Starting FastAPI Backend (http://localhost:8000)...")

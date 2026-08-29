@@ -26,6 +26,7 @@ class Retriever(ABC):
     
     def __init__(self, top_k: int = 5):
         self.top_k = top_k
+        self._embedder = None
     
     @abstractmethod
     def retrieve(self, query: str) -> list[Chunk]:
@@ -34,16 +35,16 @@ class Retriever(ABC):
     
     def embed_query(self, query: str) -> list[float]:
         """
-        Embed query using the configured Ollama model. Shared by all strategies.
+        Embed query using sentence-transformers (local CPU model).
         
         WHY SHARE THIS: Query embedding is universal across vector-based retrievers. 
         Centralizing it avoids duplication and ensures identical preprocessing.
         """
-        import ollama
-        resp = ollama.embed(model=settings.ollama_embed_model, input=query)
-        if hasattr(resp, 'embeddings'):
-            return resp.embeddings[0]
-        return resp['embeddings'][0]
+        if self._embedder is None:
+            from sentence_transformers import SentenceTransformer
+            self._embedder = SentenceTransformer(settings.embed_model)
+        embedding = self._embedder.encode([query], show_progress_bar=False)
+        return embedding[0].tolist()
     
     @property
     def name(self) -> str:

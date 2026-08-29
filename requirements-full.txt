@@ -1,4 +1,4 @@
-# DocRetriever -- Python Dependencies
+# DocRetriever -- Python Dependencies (Cloud & Local Deploy)
 # Requires Python 3.11
 
 --extra-index-url https://download.pytorch.org/whl/cpu

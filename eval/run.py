@@ -4,7 +4,7 @@ eval/run.py — Evaluation Harness for DocRetriever
 Implements:
 1. Retrieval Metrics: Recall@5, Recall@3, MRR (via eval/metrics.py)
 2. Generation Metrics: RAGAS 0.2.x (Faithfulness, Answer Relevancy, Context Precision, Context Recall)
-   using local judge llama3.2:3b via langchain-ollama (100% free, local, no API keys)
+   using Groq Cloud API (free tier)
 3. 60% → 85% Full Ablation Runner & JSON Report Generator
 
 USAGE:
@@ -25,7 +25,6 @@ from rich.table import Table
 from config.settings import settings
 from src.retrieval.factory import get_retriever
 from src.generation.generator import RAGGenerator
-from src.utils.memory import OllamaModelManager
 from eval.metrics import compute_retrieval_metrics
 
 console = Console()
@@ -165,7 +164,7 @@ def run_single_experiment(
         dataset = dataset[:max_samples]
 
     retriever = get_retriever(strategy, top_k=top_k, **retriever_kwargs)
-    generator = RAGGenerator(model=settings.ollama_llm_model)
+    generator = RAGGenerator(model=settings.groq_llm_model)
 
     raw_results = []
     ragas_questions = []

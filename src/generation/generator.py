@@ -1,10 +1,9 @@
 from pydantic import BaseModel
 from typing import Optional
-import ollama
+import httpx
 from config.settings import settings
 from src.retrieval.base import Chunk
 from src.generation.prompts import SYSTEM_PROMPT, USER_TEMPLATE
-from src.utils.memory import OllamaModelManager
 
 class SourceCitation(BaseModel):
     source_file: str
@@ -19,7 +18,7 @@ class RAGResponse(BaseModel):
 
 class RAGGenerator:
     """
-    Generates answers from retrieved context using llama3.2:3b.
+    Generates answers from retrieved context using Groq Cloud API.
     
     WHY structured output: Returning a Pydantic model ensures the API contracts are maintained
     and makes it easier to track exact sources and scores for evaluation and UI display.
@@ -31,39 +30,44 @@ class RAGGenerator:
     generation time and resource usage for overly verbose responses.
     """
     def __init__(self, model: str = None):
-        self.model = model or settings.ollama_llm_model
+        self.model = model or settings.groq_llm_model
         self.temperature = 0.2
         self.max_tokens = 512
+        self.api_key = settings.groq_api_key
+        self.base_url = settings.groq_base_url.rstrip("/")
     
     def generate(self, question: str, chunks: list[Chunk], strategy: str) -> RAGResponse:
-        # 1. RAM: unload embedder, load LLM
-        # WHY memory management: Only keeping one model in memory at a time prevents OOM errors
-        # on resource-constrained environments (RAM Rule).
-        mgr = OllamaModelManager(settings.ollama_base_url)
-        
-        # 2. Build context string from chunks
+        # 1. Build context string from chunks
         context = self._build_context(chunks)
         
-        # 3. Build prompt
+        # 2. Build prompt
         user_msg = USER_TEMPLATE.format(context=context, question=question)
         
-        # 4. Generate with Ollama
-        resp = ollama.chat(
-            model=self.model,
-            messages=[
-                {'role': 'system', 'content': SYSTEM_PROMPT},
-                {'role': 'user', 'content': user_msg},
+        # 3. Generate with Groq API (OpenAI-compatible)
+        url = f"{self.base_url}/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json",
+        }
+        payload = {
+            "model": self.model,
+            "messages": [
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": user_msg},
             ],
-            options={
-                'temperature': self.temperature,
-                'num_predict': self.max_tokens,
-            },
-            keep_alive=settings.ollama_keep_alive,  # 0 = unload after
-        )
+            "temperature": self.temperature,
+            "max_tokens": self.max_tokens,
+            "stream": False,
+        }
         
-        answer = resp.message.content
+        with httpx.Client(timeout=60.0) as client:
+            resp = client.post(url, json=payload, headers=headers)
+            resp.raise_for_status()
+            data = resp.json()
         
-        # 5. Build structured response
+        answer = data["choices"][0]["message"]["content"]
+        
+        # 4. Build structured response
         sources = [
             SourceCitation(
                 source_file=c.source_file,

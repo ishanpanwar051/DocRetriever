@@ -35,7 +35,7 @@ class IngestResponse(BaseModel):
 class HealthResponse(BaseModel):
     status: str
     postgres: str
-    ollama: str
+    groq_api: str
     corpus_files: int
     timestamp: datetime
 

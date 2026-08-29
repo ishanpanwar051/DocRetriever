@@ -1,0 +1,120 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=0.45in]{geometry}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{fontawesome5}
+\usepackage{lmodern}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    filecolor=black,
+    urlcolor=black,
+}
+
+\pagestyle{empty}
+\raggedbottom
+\raggedright
+\setlength{\tabcolsep}{0in}
+
+% Section formatting with clean horizontal divider
+\titleformat{\section}{
+  \vspace{-6pt}\scshape\raggedright\large\bfseries
+}{}{0em}{}[\color{black}\titlerule \vspace{-4pt}]
+
+\begin{document}
+
+%----------HEADER----------
+\begin{center}
+    {\Huge \textbf{ISHAN SINGH PANWAR}} \\[3pt]
+    \small
+    \faPhone* \ +91-8815730076 \quad $|$ \quad
+    \faEnvelope \ \href{mailto:ishanpanwar051@gmail.com}{ishanpanwar051@gmail.com} \quad $|$ \quad
+    \faMapMarker* \ Indore, Madhya Pradesh, India \\[3pt]
+    \faLinkedin \ \href{https://www.linkedin.com/in/ishan-panwar-721413292}{linkedin.com/in/ishan-panwar-721413292} \quad $|$ \quad
+    \faGithub \ \href{https://github.com/ishanpanwar051}{github.com/ishanpanwar051} \quad $|$ \quad
+    \faCode \ \href{https://leetcode.com/u/ishanpanwar051}{leetcode.com/u/ishanpanwar051}
+\end{center}
+
+\vspace{-6pt}
+
+%-----------EDUCATION-----------
+\section{Education}
+\noindent
+\textbf{Shree Vaishnav Vidhyapeeth Vishwavidyalaya}, Indore, MP \hfill \textbf{2023 -- Present} \\
+\textit{Bachelor of Technology in Computer Science \& Engineering} \\
+\small \textbf{Relevant Coursework:} Data Structures \& Algorithms, Object-Oriented Programming (OOP), Database Management Systems (DBMS), Operating Systems, Computer Networks
+
+\vspace{-3pt}
+
+%-----------EXPERIENCE-----------
+\section{Experience}
+\noindent
+\textbf{Software Development Intern} \hfill \textbf{ITJOBXS} \\
+\textit{Frontend \& Backend Engineering $|$ Remote} \hfill \textbf{Dec 2025 -- June 2026}
+\begin{itemize}[leftmargin=*, itemsep=1.5pt, parsep=0pt, topsep=1.5pt, partopsep=0pt]
+    \item Built and optimized 25+ responsive web pages using HTML5, CSS3, JavaScript, and Bootstrap, ensuring seamless cross-device compatibility and UI consistency.
+    \item Implemented secure user authentication workflows and integrated Google reCAPTCHA, mitigating automated bot traffic and reducing spam registrations by 40\%.
+    \item Improved frontend Web Vitals and REST API data fetching by 30\% through code minification, asset optimization, and caching, achieving a 90+ Lighthouse score.
+    \item Collaborated in an Agile team to ship 15+ product features; participated in code reviews and managed branches via Git-based version control.
+\end{itemize}
+
+\vspace{-3pt}
+
+%-----------PROJECTS-----------
+\section{Projects}
+
+\noindent
+\textbf{Distributed Rate Limiter} $|$ \textit{Node.js, TypeScript, Redis (Lua Scripts), PostgreSQL, Prisma ORM, Docker, k6} \hfill \href{https://github.com/ishanpanwar051}{\underline{GitHub}} $|$ \href{https://github.com/ishanpanwar051}{\underline{Live}}
+\begin{itemize}[leftmargin=*, itemsep=1.5pt, parsep=0pt, topsep=1.5pt, partopsep=0pt]
+    \item Engineered a horizontally scalable distributed rate-limiting microservice supporting Token Bucket, Leaky Bucket, and Sliding Window Log algorithms.
+    \item Wrote atomic Redis Lua scripts to eliminate race conditions during concurrent request processing, securing sub-5ms evaluation latency.
+    \item Configured multi-tier throttling rules (per-IP, per-user, endpoint-specific) with dynamic IP whitelisting capabilities.
+    \item Validated performance resilience using k6 and Autocannon, sustaining 10,000+ concurrent requests/sec with stable low latency under heavy load.
+\end{itemize}
+
+\vspace{1.5pt}
+
+\noindent
+\textbf{CommerceFlow -- E-Commerce Platform} $|$ \textit{Express.js, TypeScript, PostgreSQL, Prisma ORM, Redis, BullMQ, Stripe, Docker} \hfill \href{https://github.com/ishanpanwar051}{\underline{GitHub}} $|$ \href{https://github.com/ishanpanwar051}{\underline{Live}}
+\begin{itemize}[leftmargin=*, itemsep=1.5pt, parsep=0pt, topsep=1.5pt, partopsep=0pt]
+    \item Designed and built a scalable REST API backend supporting complex inventory logic and PostgreSQL relational schemas (17 models) via Prisma ORM.
+    \item Secured transaction workflows by integrating Stripe payment webhooks with idempotent verification, atomic database locks, and transactional rollbacks to prevent inventory overselling.
+    \item Reduced overall API latency by 45\% by implementing distributed Redis caching and offloading heavy operations (like invoice generation) to BullMQ asynchronous queues.
+\end{itemize}
+
+\vspace{1.5pt}
+
+\noindent
+\textbf{QuickBite -- Food Delivery Platform} $|$ \textit{React 19, Redux Toolkit, Express.js, TypeScript, MongoDB, Redis, Socket.IO, Stripe, Docker} \hfill \href{https://github.com/ishanpanwar051}{\underline{GitHub}} $|$ \href{https://github.com/ishanpanwar051}{\underline{Live}}
+\begin{itemize}[leftmargin=*, itemsep=1.5pt, parsep=0pt, topsep=1.5pt, partopsep=0pt]
+    \item Architected full-stack food delivery application using a clean layered architecture, securing sessions via JWT, Google OAuth, HTTP-only cookies, and OTP-based password recovery.
+    \item Engineered real-time bidirectional order tracking and live GPS updates using Socket.IO event streams, supported by BullMQ background workers for reliable job processing.
+    \item Containerized application microservices using Docker, integrating GitHub Actions CI/CD pipeline and Redis caching for optimized data retrieval.
+\end{itemize}
+
+\vspace{-3pt}
+
+%-----------TECHNICAL SKILLS-----------
+\section{Technical Skills}
+\begin{itemize}[leftmargin=*, label={}, itemsep=1.5pt, parsep=0pt, topsep=1.5pt, partopsep=0pt]
+    \item \textbf{Languages:} C++, JavaScript (ES6+), TypeScript, Python, SQL
+    \item \textbf{Backend Development:} Node.js, Express.js, RESTful APIs, Webhooks, Socket.IO, Asynchronous Queues (BullMQ)
+    \item \textbf{Frontend Development:} React.js (React 19), Redux Toolkit, HTML5, CSS3, Tailwind CSS, Bootstrap
+    \item \textbf{Databases \& Caching:} PostgreSQL, MongoDB, Redis, Prisma ORM, MySQL
+    \item \textbf{Tools \& Infrastructure:} Git, GitHub, Docker, Kubernetes, Postman, GitHub Actions (CI/CD), AWS (EC2, S3), k6, Autocannon
+    \item \textbf{Core CS Fundamentals:} Data Structures \& Algorithms, Object-Oriented Programming (OOP), DBMS, Operating Systems, Computer Networks
+\end{itemize}
+
+\vspace{-3pt}
+
+%-----------ACHIEVEMENTS-----------
+\section{Achievements \& Coding Profile}
+\begin{itemize}[leftmargin=*, itemsep=1.5pt, parsep=0pt, topsep=1.5pt, partopsep=0pt]
+    \item \textbf{Competitive Programming / DSA:} Solved \textbf{300+ algorithmic problems} on LeetCode with a strong focus on optimized time and space complexity.
+    \item \textbf{Cloud Infrastructure:} Hands-on experience architecting and containerizing full-stack microservices deployed with Docker, AWS (EC2, S3), and automated CI/CD pipelines.
+\end{itemize}
+
+\end{document}

@@ -2,7 +2,7 @@
 api/main.py — FastAPI Backend for DocRetriever
 
 Exposes endpoints:
-- GET  /health          → Health check for DB, Ollama, and Corpus
+- GET  /health          → Health check for DB, Groq API, and Corpus
 - POST /ingest          → Trigger corpus ingestion
 - POST /ask             → Query DocRetriever using any of 4 strategies
 - GET  /eval/results    → Retrieve latest eval benchmarks
@@ -41,7 +41,7 @@ app.add_middleware(
 
 @app.get("/health", response_model=HealthResponse)
 async def health_check():
-    """Checks PostgreSQL, Ollama server, and Corpus file count."""
+    """Checks PostgreSQL, Groq API, and Corpus file count."""
     try:
         db_ok = test_connection()
         pg_status = "connected" if db_ok else "disconnected"
@@ -50,18 +50,22 @@ async def health_check():
 
     import httpx
     try:
-        resp = httpx.get(f"{settings.ollama_base_url}/api/tags", timeout=3)
-        ollama_status = "running" if resp.status_code == 200 else "unreachable"
+        resp = httpx.get(
+            f"{settings.groq_base_url}/models",
+            headers={"Authorization": f"Bearer {settings.groq_api_key}"},
+            timeout=5,
+        )
+        groq_status = "connected" if resp.status_code == 200 else "unreachable"
     except Exception:
-        ollama_status = "unreachable"
+        groq_status = "unreachable"
 
     corpus_dir = Path(settings.corpus_dir)
     corpus_files = len(list(corpus_dir.rglob("*.md"))) if corpus_dir.exists() else 0
 
     return HealthResponse(
-        status="ok" if pg_status == "connected" and ollama_status == "running" else "degraded",
+        status="ok" if pg_status == "connected" and groq_status == "connected" else "degraded",
         postgres=pg_status,
-        ollama=ollama_status,
+        groq_api=groq_status,
         corpus_files=corpus_files,
         timestamp=datetime.now(),
     )
@@ -102,8 +106,8 @@ async def ask(request: AskRequest):
         # 2. Retrieve relevant chunks
         chunks = retriever.retrieve(request.question)
 
-        # 3. Generate answer with LLM (keep_alive=0)
-        generator = RAGGenerator(model=settings.ollama_llm_model)
+        # 3. Generate answer with Groq API
+        generator = RAGGenerator(model=settings.groq_llm_model)
         rag_resp = generator.generate(
             question=request.question,
             chunks=chunks,

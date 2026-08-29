@@ -36,13 +36,14 @@ class Settings(BaseSettings):
             f"@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
         )
 
-    # ── Ollama ────────────────────────────────────────────────────────────────
-    ollama_base_url: str = Field(default="http://localhost:11434")
-    ollama_embed_model: str = Field(default="nomic-embed-text")   # 768-dim
-    ollama_llm_model: str = Field(default="llama3.2:3b")
-    # WHY keep_alive=0: immediately unload model from VRAM/RAM after inference
-    # This is the core 8GB RAM management strategy — never hold 2 models simultaneously
-    ollama_keep_alive: int = Field(default=0)
+    # ── Groq Cloud API (LLM Generation) ───────────────────────────────────────
+    groq_api_key: str = Field(default="")
+    groq_base_url: str = Field(default="https://api.groq.com/openai/v1")
+    groq_llm_model: str = Field(default="llama-3.1-8b-instant")
+
+    # ── Embeddings (sentence-transformers, runs locally in CPU) ────────────────
+    embed_model: str = Field(default="all-MiniLM-L6-v2")   # 384-dim, fast on CPU
+    embedding_dim: int = Field(default=384)  # all-MiniLM-L6-v2 output dim
 
     # ── Reranker ─────────────────────────────────────────────────────────────
     reranker_model: str = Field(default="BAAI/bge-reranker-base")
@@ -51,10 +52,9 @@ class Settings(BaseSettings):
     # ── Retrieval Defaults ────────────────────────────────────────────────────
     default_top_k: int = Field(default=5)
     default_strategy: str = Field(default="simple")
-    embedding_dim: int = Field(default=768)  # nomic-embed-text output dim
 
     # ── Eval ─────────────────────────────────────────────────────────────────
-    eval_judge_model: str = Field(default="llama3.2:3b")
+    eval_judge_model: str = Field(default="llama-3.1-8b-instant")
     eval_dataset_path: str = Field(default="eval/data/qa_pairs.jsonl")
     eval_reports_dir: str = Field(default="eval/reports")
 
@@ -75,7 +75,6 @@ if __name__ == "__main__":
     # Quick test: python -m config.settings
     print("✅ Settings loaded:")
     print(f"  DB URL:      {settings.database_url}")
-    print(f"  Embed model: {settings.ollama_embed_model}")
-    print(f"  LLM model:   {settings.ollama_llm_model}")
-    print(f"  keep_alive:  {settings.ollama_keep_alive}  ← 0 = unload after inference")
+    print(f"  Embed model: {settings.embed_model}")
+    print(f"  LLM model:   {settings.groq_llm_model}")
     print(f"  Reranker:    {settings.reranker_model} on {settings.reranker_device}")

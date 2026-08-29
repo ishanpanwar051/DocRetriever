@@ -148,9 +148,8 @@ with st.sidebar:
     top_k = st.slider("Top-K Passages", 1, 10, 5)
     st.markdown("---")
     st.markdown("**🛰️ Model stack**")
-    st.caption(f"Embed: `{settings.ollama_embed_model}`")
-    st.caption(f"LLM: `{settings.ollama_llm_model}`")
-    st.caption(f"keep_alive: `{settings.ollama_keep_alive}` (RAM guard)")
+    st.caption(f"Embed: `{settings.embed_model}` (sentence-transformers)")
+    st.caption(f"LLM: `{settings.groq_llm_model}` (Groq Cloud)")
     st.markdown("---")
     st.caption("Run this command:\n`streamlit run ui/dashboard.py`")
 
@@ -266,17 +265,18 @@ with tab_arch:
     st.subheader("🏗️ 4-stage retrieval + generation stack")
     st.markdown(
         "- **1. Ingest**: Markdown parser → chunker (simple / semantic boundary) → "
-        "`nomic-embed-text` 768-dim → pgvector\n"
+        "`all-MiniLM-L6-v2` 384-dim → pgvector\n"
         "- **2. Retrieve** — strategy factory instantiates 1 of 4 retrievers\n"
         "- **3. Fuse / Re-rank** — RRF (k=60) hybrid fusion, or cross-encoder 20→5\n"
-        "- **4. Generate** — `llama3.2:3b` answers from retrieved context with citations\n"
+        "- **4. Generate** — `llama-3.1-8b-instant` (Groq Cloud) answers from retrieved context with citations\n"
     )
     st.markdown("### Engineering wins that make this non-basic")
     st.markdown(
         "- clean **Factory** + **ABC base** — swapping strategies = one string\n"
         "- **pgvector `<=>` cosine** + `tsvector` BM25 fused via **Reciprocal Rank Fusion (k=60)**\n"
         "- two-stage **bi-encoder → cross-encoder** re-ranking (speed + precision)\n"
-        "- hard **8GB RAM discipline**: `keep_alive=0` + sequential `OllamaModelManager`\n"
+        "- **sentence-transformers** local embeddings — no API key needed for embedding\n"
+        "- **Groq Cloud** free-tier LLM — zero-cost inference\n"
         "- **RAGAS** + **Recall@k / MRR** evaluation harness, picture-perfect ablation charts\n"
     )
 

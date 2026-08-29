@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ishan Singh Panwar - SDE Intern Resume</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background-color: #f3f4f6;
+      color: #111827;
+      line-height: 1.35;
+      font-size: 9.3pt;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .page-wrapper {
+      width: 210mm;
+      min-height: 297mm;
+      max-height: 297mm;
+      margin: 20px auto;
+      background: white;
+      padding: 10mm 14mm;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    @media print {
+      body {
+        background: white;
+      }
+      .page-wrapper {
+        margin: 0;
+        padding: 8mm 12mm;
+        width: 100%;
+        max-height: 100%;
+        box-shadow: none;
+      }
+      @page {
+        size: A4 portrait;
+        margin: 0;
+      }
+      .no-print {
+        display: none !important;
+      }
+    }
+
+    .action-bar {
+      max-width: 210mm;
+      margin: 15px auto 0 auto;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .btn {
+      background-color: #2563eb;
+      color: white;
+      border: none;
+      padding: 8px 18px;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 5px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+
+    .btn:hover {
+      background-color: #1d4ed8;
+    }
+
+    /* Header */
+    header {
+      text-align: center;
+      margin-bottom: 6px;
+    }
+
+    h1.name {
+      font-size: 20pt;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      margin-bottom: 3px;
+      color: #0f172a;
+    }
+
+    .contact-line {
+      font-size: 8.8pt;
+      color: #374151;
+      margin-bottom: 2px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .contact-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    a {
+      color: #1e40af;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    /* Section Styling */
+    section {
+      margin-bottom: 6px;
+    }
+
+    h2.section-title {
+      font-size: 10.5pt;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: #0f172a;
+      border-bottom: 1.2px solid #1e293b;
+      padding-bottom: 1.5px;
+      margin-bottom: 3px;
+    }
+
+    /* Education */
+    .edu-header, .exp-header, .proj-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 9.2pt;
+      margin-bottom: 1px;
+    }
+
+    .proj-links {
+      white-space: nowrap;
+      margin-left: 10px;
+      font-size: 8.8pt;
+      flex-shrink: 0;
+    }
+
+    .bold-title {
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .sub-title {
+      font-size: 8.8pt;
+      color: #374151;
+    }
+
+    .sub-italic {
+      font-style: italic;
+    }
+
+    /* Bullet lists */
+    ul.bullet-list {
+      list-style-type: disc;
+      padding-left: 14px;
+      font-size: 8.8pt;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5px;
+      color: #1f2937;
+    }
+
+    ul.bullet-list li {
+      line-height: 1.28;
+    }
+
+    /* Skills */
+    .skills-list {
+      list-style: none;
+      font-size: 8.8pt;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      color: #1f2937;
+    }
+
+    .skills-list strong {
+      color: #0f172a;
+    }
+
+    .proj-item {
+      margin-bottom: 4.5px;
+    }
+
+    .proj-item:last-child {
+      margin-bottom: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="action-bar no-print">
+    <button class="btn" onclick="window.print()">🖨️ Print / Save as Single-Page PDF</button>
+  </div>
+
+  <div class="page-wrapper">
+    <!-- Header -->
+    <header>
+      <h1 class="name">ISHAN SINGH PANWAR</h1>
+      <div class="contact-line">
+        <span class="contact-item">+91-8815730076</span>
+        <span class="delimiter">|</span>
+        <span class="contact-item"><a href="mailto:ishanpanwar051@gmail.com">ishanpanwar051@gmail.com</a></span>
+        <span class="delimiter">|</span>
+        <span class="contact-item">Indore, Madhya Pradesh, India</span>
+      </div>
+      <div class="contact-line">
+        <span class="contact-item"><a href="https://www.linkedin.com/in/ishan-panwar-721413292" target="_blank">linkedin.com/in/ishan-panwar-721413292</a></span>
+        <span class="delimiter">|</span>
+        <span class="contact-item"><a href="https://github.com/ishanpanwar051" target="_blank">github.com/ishanpanwar051</a></span>
+        <span class="delimiter">|</span>
+        <span class="contact-item"><a href="https://leetcode.com/u/ishanpanwar051" target="_blank">leetcode.com/u/ishanpanwar051</a></span>
+      </div>
+    </header>
+
+    <!-- Education -->
+    <section>
+      <h2 class="section-title">Education</h2>
+      <div class="edu-header">
+        <div><span class="bold-title">Shree Vaishnav Vidhyapeeth Vishwavidyalaya</span>, Indore, MP</div>
+        <div><strong>2023 – Present</strong></div>
+      </div>
+      <div class="sub-title sub-italic" style="margin-bottom: 1.5px;">Bachelor of Technology in Computer Science &amp; Engineering</div>
+      <div class="sub-title"><strong>Relevant Coursework:</strong> Data Structures &amp; Algorithms, Object-Oriented Programming (OOP), Database Management Systems (DBMS), Operating Systems, Computer Networks</div>
+    </section>
+
+    <!-- Experience -->
+    <section>
+      <h2 class="section-title">Experience</h2>
+      <div class="exp-header">
+        <div><span class="bold-title">Software Development Intern</span> — <strong>ITJOBXS</strong></div>
+        <div><strong>Dec 2025 – June 2026</strong></div>
+      </div>
+      <div class="sub-title sub-italic" style="margin-bottom: 2px;">Frontend &amp; Backend Engineering | Remote</div>
+      <ul class="bullet-list">
+        <li>Built and optimized 25+ responsive web pages using HTML5, CSS3, JavaScript, and Bootstrap, ensuring seamless cross-device compatibility and UI consistency.</li>
+        <li>Implemented secure user authentication workflows and integrated Google reCAPTCHA, mitigating automated bot traffic and reducing spam registrations by 40%.</li>
+        <li>Improved frontend Web Vitals and REST API data fetching by 30% through code minification, asset optimization, and caching, achieving a 90+ Lighthouse score.</li>
+        <li>Collaborated in an Agile team to ship 15+ product features; participated in code reviews and managed branches via Git-based version control.</li>
+      </ul>
+    </section>
+
+    <!-- Projects -->
+    <section>
+      <h2 class="section-title">Projects</h2>
+
+      <div class="proj-item">
+        <div class="proj-header">
+          <div><span class="bold-title">Distributed Rate Limiter</span> | <span class="sub-italic">Node.js, TypeScript, Redis (Lua Scripts), PostgreSQL, Prisma ORM, Docker, k6</span></div>
+          <div class="proj-links"><a href="https://github.com/ishanpanwar051" target="_blank">GitHub</a> | <a href="https://github.com/ishanpanwar051" target="_blank">Live</a></div>
+        </div>
+        <ul class="bullet-list">
+          <li>Engineered a horizontally scalable distributed rate-limiting microservice supporting Token Bucket, Leaky Bucket, and Sliding Window Log algorithms.</li>
+          <li>Wrote atomic Redis Lua scripts to eliminate race conditions during concurrent request processing, securing sub-5ms evaluation latency.</li>
+          <li>Configured multi-tier throttling rules (per-IP, per-user, endpoint-specific) with dynamic IP whitelisting capabilities.</li>
+          <li>Validated performance resilience using k6 and Autocannon, sustaining 10,000+ concurrent requests/sec with stable low latency under heavy load.</li>
+        </ul>
+      </div>
+
+      <div class="proj-item">
+        <div class="proj-header">
+          <div><span class="bold-title">CommerceFlow — E-Commerce Platform</span> | <span class="sub-italic">Express.js, TypeScript, PostgreSQL, Prisma ORM, Redis, BullMQ, Stripe, Docker</span></div>
+          <div class="proj-links"><a href="https://github.com/ishanpanwar051" target="_blank">GitHub</a> | <a href="https://github.com/ishanpanwar051" target="_blank">Live</a></div>
+        </div>
+        <ul class="bullet-list">
+          <li>Designed and built a scalable REST API backend supporting complex inventory logic and PostgreSQL relational schemas (17 models) via Prisma ORM.</li>
+          <li>Secured transaction workflows by integrating Stripe payment webhooks with idempotent verification, atomic database locks, and transactional rollbacks to prevent inventory overselling.</li>
+          <li>Reduced overall API latency by 45% by implementing distributed Redis caching and offloading heavy operations (like invoice generation) to BullMQ asynchronous queues.</li>
+        </ul>
+      </div>
+
+      <div class="proj-item">
+        <div class="proj-header">
+          <div><span class="bold-title">QuickBite — Food Delivery Platform</span> | <span class="sub-italic">React 19, Redux Toolkit, Express.js, TypeScript, MongoDB, Redis, Socket.IO, Stripe, Docker</span></div>
+          <div class="proj-links"><a href="https://github.com/ishanpanwar051" target="_blank">GitHub</a> | <a href="https://github.com/ishanpanwar051" target="_blank">Live</a></div>
+        </div>
+        <ul class="bullet-list">
+          <li>Architected full-stack food delivery application using a clean layered architecture, securing sessions via JWT, Google OAuth, HTTP-only cookies, and OTP-based password recovery.</li>
+          <li>Engineered real-time bidirectional order tracking and live GPS updates using Socket.IO event streams, supported by BullMQ background workers for reliable job processing.</li>
+          <li>Containerized application microservices using Docker, integrating GitHub Actions CI/CD pipeline and Redis caching for optimized data retrieval.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Technical Skills -->
+    <section>
+      <h2 class="section-title">Technical Skills</h2>
+      <ul class="skills-list">
+        <li><strong>Languages:</strong> C++, JavaScript (ES6+), TypeScript, Python, SQL</li>
+        <li><strong>Backend Development:</strong> Node.js, Express.js, RESTful APIs, Webhooks, Socket.IO, Asynchronous Queues (BullMQ)</li>
+        <li><strong>Frontend Development:</strong> React.js (React 19), Redux Toolkit, HTML5, CSS3, Tailwind CSS, Bootstrap</li>
+        <li><strong>Databases &amp; Caching:</strong> PostgreSQL, MongoDB, Redis, Prisma ORM, MySQL</li>
+        <li><strong>Tools &amp; Infrastructure:</strong> Git, GitHub, Docker, Kubernetes, Postman, GitHub Actions (CI/CD), AWS (EC2, S3), k6, Autocannon</li>
+        <li><strong>Core CS Fundamentals:</strong> Data Structures &amp; Algorithms, Object-Oriented Programming (OOP), DBMS, Operating Systems, Computer Networks</li>
+      </ul>
+    </section>
+
+    <!-- Achievements & Coding Profile -->
+    <section>
+      <h2 class="section-title">Achievements &amp; Coding Profile</h2>
+      <ul class="bullet-list">
+        <li><strong>Competitive Programming / DSA:</strong> Solved <strong>300+ algorithmic problems</strong> on LeetCode with a strong focus on optimized time and space complexity.</li>
+        <li><strong>Cloud Infrastructure:</strong> Hands-on experience architecting and containerizing full-stack microservices deployed with Docker, AWS (EC2, S3), and automated CI/CD pipelines.</li>
+      </ul>
+    </section>
+  </div>
+
+</body>
+</html>
