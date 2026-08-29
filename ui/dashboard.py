@@ -21,7 +21,13 @@ Run:
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
+
+# Ensure repository root is on sys.path
+ROOT_DIR = Path(__file__).resolve().parent.parent
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
 
 import streamlit as st
 import pandas as pd
@@ -32,7 +38,11 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-from config.settings import settings
+try:
+    from config.settings import settings
+except Exception:
+    settings = None
+
 
 API_BASE = "http://localhost:8000"
 ABLATION_REPORT = Path("eval/reports/ablation_report.json")
