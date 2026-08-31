@@ -40,27 +40,55 @@ class SimpleChunker:
         return good_splits
 
     def chunk(self, text: str) -> list[str]:
-        # simplified recursive splitting for demonstration
-        # in reality, you'd aggregate chunks up to chunk_size
+        """
+        Chunks text respecting chunk_size and overlap (measured in tokens).
+        Uses recursive character splitting for paragraph coherence, then
+        applies sliding window overlap to prevent context severing across chunk boundaries.
+        """
+        if not text or not text.strip():
+            return []
+
+        # If text is already within chunk_size tokens, return as single chunk
+        tokens = self.encoder.encode(text)
+        if len(tokens) <= self.chunk_size:
+            return [text.strip()]
+
         raw_splits = self._split_text(text, self.separators)
         
         chunks = []
-        current_chunk = ""
+        current_splits: list[str] = []
+        current_tokens = 0
         
         for split in raw_splits:
-            if not current_chunk:
-                current_chunk = split
-                continue
+            split_token_count = len(self.encoder.encode(split))
+            
+            # If adding this split exceeds chunk_size, finalize the current chunk
+            if current_splits and (current_tokens + split_token_count > self.chunk_size):
+                chunk_text = "".join(current_splits).strip()
+                if chunk_text:
+                    chunks.append(chunk_text)
                 
-            combined = current_chunk + " " + split
-            if len(self.encoder.encode(combined)) <= self.chunk_size:
-                current_chunk = combined
+                # Retain tail splits to satisfy the overlap token requirement
+                overlap_splits: list[str] = []
+                overlap_tokens = 0
+                for prev_split in reversed(current_splits):
+                    prev_count = len(self.encoder.encode(prev_split))
+                    if overlap_tokens + prev_count <= self.overlap:
+                        overlap_splits.insert(0, prev_split)
+                        overlap_tokens += prev_count
+                    else:
+                        break
+                
+                current_splits = overlap_splits + [split]
+                current_tokens = overlap_tokens + split_token_count
             else:
-                chunks.append(current_chunk)
-                current_chunk = split
+                current_splits.append(split)
+                current_tokens += split_token_count
                 
-        if current_chunk:
-            chunks.append(current_chunk)
+        if current_splits:
+            final_chunk = "".join(current_splits).strip()
+            if final_chunk and (not chunks or final_chunk != chunks[-1]):
+                chunks.append(final_chunk)
             
         return chunks
 

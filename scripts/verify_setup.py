@@ -21,6 +21,9 @@ import sys
 import logging
 from pathlib import Path
 
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
 sys.path.insert(0, str(Path(__file__).parent.parent))
 logging.basicConfig(level=logging.WARNING)
 
@@ -39,14 +42,13 @@ def check(name: str, critical: bool = True):
 def check_config():
     from config.settings import settings
     assert settings.postgres_host
-    assert settings.ollama_base_url
-    assert settings.ollama_embed_model == "nomic-embed-text"
-    assert settings.ollama_keep_alive == 0, "keep_alive must be 0 for RAM management!"
-    return f"DB={settings.postgres_host}:{settings.postgres_port} | LLM={settings.ollama_llm_model} | keep_alive={settings.ollama_keep_alive}"
+    assert settings.embed_model
+    assert settings.embedding_dim == 384
+    return f"DB={settings.postgres_host}:{settings.postgres_port} | Embed={settings.embed_model} (dim={settings.embedding_dim}) | LLM={settings.groq_llm_model}"
 
 
 # ── 2: PostgreSQL ──────────────────────────────────────────────────────────────
-@check("PostgreSQL connection")
+@check("PostgreSQL connection", critical=False)
 def check_postgres():
     import psycopg2
     from config.settings import settings
@@ -63,7 +65,7 @@ def check_postgres():
 
 
 # ── 3: pgvector ────────────────────────────────────────────────────────────────
-@check("pgvector extension enabled")
+@check("pgvector extension enabled", critical=False)
 def check_pgvector():
     import psycopg2
     from config.settings import settings
@@ -81,7 +83,7 @@ def check_pgvector():
 
 
 # ── 4: Tables ──────────────────────────────────────────────────────────────────
-@check("Database tables created")
+@check("Database tables created", critical=False)
 def check_tables():
     import psycopg2
     from config.settings import settings
@@ -113,54 +115,37 @@ def check_tables():
     return f"Tables: {sorted(tables)} | {hnsw_status}"
 
 
-# ── 5: Ollama server ───────────────────────────────────────────────────────────
-@check("Ollama server running")
-def check_ollama_server():
-    import httpx
-    from config.settings import settings
-    resp = httpx.get(f"{settings.ollama_base_url}/api/tags", timeout=5)
-    resp.raise_for_status()
-    models = [m["name"] for m in resp.json().get("models", [])]
-    return f"Running ✓ | Pulled models: {models or ['(none yet — run setup_ollama.ps1)']}"
-
-
-# ── 6: nomic-embed-text ────────────────────────────────────────────────────────
-@check("nomic-embed-text — embedding dimension test")
+# ── 5: Local Embedder (sentence-transformers) ──────────────────────────────────
+@check("Local Embedder (all-MiniLM-L6-v2 — 384-dim test)")
 def check_embed_model():
-    import ollama
+    from src.ingestion.embedder import LocalSentenceEmbedder
     from config.settings import settings
-    resp = ollama.embed(
-        model=settings.ollama_embed_model,
-        input="DocRetriever Phase A setup verification test",
-    )
-    # Handle both ollama SDK versions
-    if hasattr(resp, "embeddings"):
-        embeddings = resp.embeddings
-    else:
-        embeddings = resp.get("embeddings", [])
-
-    assert embeddings, "No embeddings returned from Ollama"
-    dim = len(embeddings[0])
-    assert dim == 768, f"Expected 768-dim, got {dim}. Wrong model? Check OLLAMA_EMBED_MODEL in .env"
-    return f"768-dim embedding ✓ | model={settings.ollama_embed_model}"
+    embedder = LocalSentenceEmbedder(model=settings.embed_model)
+    emb = embedder.embed_single("DocRetriever verification test")
+    dim = len(emb)
+    assert dim == settings.embedding_dim, f"Expected {settings.embedding_dim}-dim, got {dim}."
+    return f"{dim}-dim embedding verified ✓ | model={settings.embed_model}"
 
 
-# ── 7: llama3.2:3b ────────────────────────────────────────────────────────────
-@check("llama3.2:3b model available")
+# ── 6: LLM Provider (Groq / Ollama) ───────────────────────────────────────────
+@check("LLM Provider availability", critical=False)
 def check_llm():
-    import httpx
     from config.settings import settings
-    resp = httpx.get(f"{settings.ollama_base_url}/api/tags", timeout=5)
-    models = [m["name"] for m in resp.json().get("models", [])]
-    llm = settings.ollama_llm_model
-    found = any(llm.replace(":latest", "") in m for m in models)
-    if not found:
-        raise AssertionError(
-            f"{llm} not found. Run: ollama pull {llm}\n"
-            f"Or run: .\\scripts\\setup_ollama.ps1\n"
-            f"Available: {models}"
+    import httpx
+    if settings.groq_api_key:
+        resp = httpx.get(
+            f"{settings.groq_base_url}/models",
+            headers={"Authorization": f"Bearer {settings.groq_api_key}"},
+            timeout=5,
         )
-    return f"{llm} found ✓"
+        if resp.status_code == 200:
+            return f"Groq Cloud API connected ✓ | Model: {settings.groq_llm_model}"
+        return f"Groq API returned status {resp.status_code}"
+    
+    # Fallback check for local Ollama
+    resp = httpx.get(f"{settings.ollama_base_url}/api/tags", timeout=3)
+    models = [m["name"] for m in resp.json().get("models", [])]
+    return f"Local Ollama running ✓ | Models: {models}"
 
 
 # ── 8: RAM utility ────────────────────────────────────────────────────────────

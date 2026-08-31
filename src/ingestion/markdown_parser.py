@@ -12,6 +12,7 @@ class MarkdownParser:
     def parse_file(self, path: Path) -> list[dict]:
         """
         Parses a .md file into a list of section dictionaries.
+        Safely ignores headings inside fenced code blocks (```).
         
         Args:
             path: Path to the markdown file.
@@ -20,36 +21,41 @@ class MarkdownParser:
             list[dict]: List of sections with keys: content, section_title, source_file
         """
         with open(path, 'r', encoding='utf-8') as f:
-            content = f.read()
+            lines = f.readlines()
             
-        # Regex to match H1 or H2 headings
-        # Note: In a production setting, this regex might be expanded to handle 
-        # code blocks robustly, but for this parser, we assume standard well-formatted md.
-        heading_pattern = re.compile(r'^(#{1,2})\s+(.*)$', re.MULTILINE)
-        
         sections = []
-        last_pos = 0
         current_title = "Introduction"
+        current_lines: list[str] = []
+        in_code_block = False
         
-        # Iteratively find headings and capture the content in between
-        for match in heading_pattern.finditer(content):
-            start = match.start()
+        heading_re = re.compile(r'^(#{1,2})\s+(.+)$')
+        
+        for line in lines:
+            stripped = line.strip()
+            if stripped.startswith("```"):
+                in_code_block = not in_code_block
+                current_lines.append(line)
+                continue
+                
+            # Only match headings outside of code blocks
+            if not in_code_block:
+                match = heading_re.match(line)
+                if match:
+                    section_content = "".join(current_lines).strip()
+                    if section_content:
+                        sections.append({
+                            "content": section_content,
+                            "section_title": current_title,
+                            "source_file": str(path)
+                        })
+                    current_title = match.group(2).strip()
+                    current_lines = []
+                    continue
+                    
+            current_lines.append(line)
             
-            # Content before this heading
-            section_content = content[last_pos:start].strip()
-            if section_content:
-                sections.append({
-                    "content": section_content,
-                    "section_title": current_title,
-                    "source_file": str(path)  # Storing relative path or absolute depending on caller
-                })
-            
-            # Update title and position for next section
-            current_title = match.group(2).strip()
-            last_pos = match.end()
-            
-        # Add the final section
-        final_content = content[last_pos:].strip()
+        # Add remaining content
+        final_content = "".join(current_lines).strip()
         if final_content:
             sections.append({
                 "content": final_content,

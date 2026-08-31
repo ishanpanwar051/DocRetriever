@@ -167,7 +167,7 @@ with st.sidebar:
 # Hero + live system health row
 # ─────────────────────────────────────────────────────────────────────────────
 
-st.markdown('<div class="hero">🛰️ DocuRetriever Command Center</div>', unsafe_allow_html=True)
+st.markdown('<div class="hero">🛰️ DocRetriever Command Center</div>', unsafe_allow_html=True)
 st.markdown(
     '<div class="hero-sub">Multi-Strategy RAG on FastAPI docs — 4 retrieval architectures, '
     "1 honest benchmark: 60% -> 85%</div>",
@@ -193,11 +193,26 @@ tab_chat, tab_bench, tab_arch, tab_ingest = st.tabs(
 
 with tab_chat:
     st.subheader("Ask anything about FastAPI — watch it retrieve & cite.")
-    q = st.text_input(
-        "Question",
-        placeholder="How does query / path parameter validation work in FastAPI?",
-    )
-    go = st.button("🔄 Retrieve + Answer", type="primary", use_container_width=True)
+    
+    # 1-Click Prompt Suggestions
+    st.caption("💡 Try asking:")
+    sug_c1, sug_c2, sug_c3 = st.columns(3)
+    if sug_c1.button("📌 Path vs Query Params", use_container_width=True):
+        st.session_state.prompt_query = "What is the difference between path parameters and query parameters?"
+    if sug_c2.button("🔒 OAuth2 with JWT", use_container_width=True):
+        st.session_state.prompt_query = "How do you implement OAuth2 authentication with JWT in FastAPI?"
+    if sug_c3.button("⚡ Async vs Def Handlers", use_container_width=True):
+        st.session_state.prompt_query = "When should you use async def vs def for route handlers in FastAPI?"
+
+    default_q = st.session_state.get("prompt_query", "")
+
+    with st.form("ask_form"):
+        q = st.text_input(
+            "Question",
+            value=default_q,
+            placeholder="How does query / path parameter validation work in FastAPI?",
+        )
+        go = st.form_submit_button("🔄 Retrieve + Answer", type="primary", use_container_width=True)
 
     if go:
         if not q.strip():
@@ -214,20 +229,20 @@ with tab_chat:
                 data = resp.json()
                 latency = data.get("processing_time_ms", 0)
                 chunks = data.get("num_context_chunks", 0)
-                st.success(f"Answer generated in ~{latency:.0f} ms from **{chunks}** context chunks")
+                st.success(f"Answer generated in ~{latency:.0f} ms from **{chunks}** context chunks (Strategy: `{strategy}`)")
                 st.markdown(data.get("answer", ""))
 
                 sources = data.get("sources", [])
                 scores = data.get("retrieval_scores", [])
-                st.subheader("🔎 Retrieved sources")
+                st.subheader("🔎 Retrieved sources & confidence")
                 if sources:
                     for idx, src in enumerate(sources):
                         sec = src.get("section_title") or ""
                         score = scores[idx] if idx < len(scores) else None
                         title = f"`{src.get('source_file')}`" + (f" → {sec}" if sec else "")
                         with st.expander(title):
-                            frac = min(1.0, abs(score)) if score is not None else 1.0
-                            st.progress(float(frac), text=f"retrieval score: {score:.3f}" if score is not None else "")
+                            frac = min(1.0, max(0.0, score)) if score is not None else 1.0
+                            st.progress(float(frac), text=f"Retrieval score / RRF: {score:.4f}" if score is not None else "")
                 else:
                     st.info("No sources returned — run an ingest first.")
             except Exception as exc:

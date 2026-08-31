@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS document_chunks (
     token_count     INTEGER,                -- approximate token count (for monitoring)
     
     -- Strategy 1 & 2: vector similarity search
-    embedding       vector(768),            -- nomic-embed-text output dim = 768
+    embedding       vector(384),            -- all-MiniLM-L6-v2 output dim = 384
     
     -- Strategy 3: hybrid search (tsvector for BM25-like keyword search)
     content_tsv     tsvector GENERATED ALWAYS AS (to_tsvector('english', content)) STORED,

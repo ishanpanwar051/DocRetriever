@@ -71,21 +71,35 @@ def evaluate_with_ragas(
             LLMContextPrecisionWithoutReference,
             LLMContextRecall,
         )
-        from langchain_ollama import ChatOllama, OllamaEmbeddings
         from ragas.run_config import RunConfig
 
-        console.print("[dim]Initializing RAGAS with local judge (llama3.2:3b)...[/dim]")
+        console.print("[dim]Initializing RAGAS evaluator judge...[/dim]")
         
-        # Configure local Ollama judge
-        evaluator_llm = ChatOllama(
-            model=settings.eval_judge_model,
-            base_url=settings.ollama_base_url,
-            temperature=0.0,
-        )
-        evaluator_embeddings = OllamaEmbeddings(
-            model=settings.ollama_embed_model,
-            base_url=settings.ollama_base_url,
-        )
+        # Configure evaluator LLM: Prefer Groq if key exists, otherwise try local Ollama
+        if getattr(settings, "groq_api_key", None):
+            from langchain_openai import ChatOpenAI
+            from langchain_community.embeddings import HuggingFaceEmbeddings
+
+            evaluator_llm = ChatOpenAI(
+                model=settings.eval_judge_model or settings.groq_llm_model,
+                openai_api_key=settings.groq_api_key,
+                openai_api_base=settings.groq_base_url,
+                temperature=0.0,
+            )
+            evaluator_embeddings = HuggingFaceEmbeddings(
+                model_name=settings.embed_model
+            )
+        else:
+            from langchain_ollama import ChatOllama, OllamaEmbeddings
+            evaluator_llm = ChatOllama(
+                model=getattr(settings, "ollama_llm_model", "llama3.2:3b"),
+                base_url=getattr(settings, "ollama_base_url", "http://localhost:11434"),
+                temperature=0.0,
+            )
+            evaluator_embeddings = OllamaEmbeddings(
+                model=getattr(settings, "ollama_embed_model", "nomic-embed-text"),
+                base_url=getattr(settings, "ollama_base_url", "http://localhost:11434"),
+            )
 
         samples = []
         for q, a, ctx, gt in zip(questions, answers, contexts, ground_truths):
@@ -126,7 +140,7 @@ def evaluate_with_ragas(
 
     except Exception as e:
         console.print(f"[yellow]⚠️ RAGAS evaluation note: {e}[/yellow]")
-        console.print("[yellow]Falling back to retrieval-only metrics. Ensure langchain-ollama & ragas are installed.[/yellow]")
+        console.print("[yellow]Falling back to retrieval-only metrics.[/yellow]")
         return {
             "ragas_faithfulness": None,
             "ragas_answer_relevancy": None,

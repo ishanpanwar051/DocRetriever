@@ -58,7 +58,8 @@ class OllamaModelManager:
     """
 
     def __init__(self, base_url: Optional[str] = None):
-        self.base_url = (base_url or settings.ollama_base_url).rstrip("/")
+        fallback = getattr(settings, "ollama_base_url", "http://localhost:11434")
+        self.base_url = (base_url or fallback).rstrip("/")
 
     def list_loaded(self) -> list[str]:
         try:

@@ -72,8 +72,13 @@ async def health_check():
 
 
 @app.post("/ingest", response_model=IngestResponse)
-async def ingest(request: IngestRequest):
-    """Triggers corpus ingestion with chosen strategy and parameters."""
+def ingest(request: IngestRequest):
+    """
+    Triggers corpus ingestion with chosen strategy and parameters.
+    WHY def (not async def): CPU embedding and database I/O are blocking operations.
+    FastAPI runs standard 'def' endpoints in an external worker threadpool, keeping
+    the main async event loop responsive.
+    """
     start_time = time.time()
     try:
         files_count, chunks_count = ingest_corpus(
@@ -96,8 +101,12 @@ async def ingest(request: IngestRequest):
 
 
 @app.post("/ask", response_model=AskResponse)
-async def ask(request: AskRequest):
-    """Query the system using a specific strategy."""
+def ask(request: AskRequest):
+    """
+    Query the system using a specific strategy.
+    WHY def (not async def): Retrieval (vector search + cross-encoder) and generation
+    contain synchronous blocking I/O. Running in threadpool guarantees concurrent throughput.
+    """
     start_time = time.time()
     try:
         # 1. Instantiate retriever for chosen strategy

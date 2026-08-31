@@ -3,6 +3,7 @@ from sqlalchemy import Text, Integer, TIMESTAMP, func, Index
 from sqlalchemy.dialects.postgresql import JSONB, TSVECTOR
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from datetime import datetime
+from config.settings import settings
 
 class Base(DeclarativeBase):
     """
@@ -39,8 +40,8 @@ class DocumentChunk(Base):
     # WHY: Token count is useful for LLM context window management and cost estimation.
     token_count: Mapped[int | None] = mapped_column(Integer)
     
-    # WHY: 768 is the embedding dimension for 'nomic-embed-text'.
-    embedding = mapped_column(Vector(768), nullable=True)
+    # WHY: Dynamically configured vector dimension (384 for all-MiniLM-L6-v2)
+    embedding = mapped_column(Vector(settings.embedding_dim), nullable=True)
     
     # WHY: Tracking chunk strategy (e.g., 'simple', 'semantic') allows A/B testing 
     # of different retrieval strategies.

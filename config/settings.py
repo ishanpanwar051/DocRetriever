@@ -41,6 +41,12 @@ class Settings(BaseSettings):
     groq_base_url: str = Field(default="https://api.groq.com/openai/v1")
     groq_llm_model: str = Field(default="llama-3.1-8b-instant")
 
+    # ── Optional Local Ollama (Fallback / Offline) ────────────────────────────
+    ollama_base_url: str = Field(default="http://localhost:11434")
+    ollama_llm_model: str = Field(default="llama3.2:3b")
+    ollama_embed_model: str = Field(default="nomic-embed-text")
+    ollama_keep_alive: int = Field(default=0)
+
     # ── Embeddings (sentence-transformers, runs locally in CPU) ────────────────
     embed_model: str = Field(default="all-MiniLM-L6-v2")   # 384-dim, fast on CPU
     embedding_dim: int = Field(default=384)  # all-MiniLM-L6-v2 output dim
