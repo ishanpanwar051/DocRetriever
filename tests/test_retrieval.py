@@ -54,3 +54,34 @@ def test_compute_retrieval_metrics():
     metrics = compute_retrieval_metrics(sample_results)
     assert metrics["recall_at_5"] == 1.0
     assert metrics["mrr"] == 0.75  # (1.0 + 0.5) / 2
+
+
+def test_mmr_cosine_similarity():
+    import numpy as np
+    from src.retrieval.mmr import cosine_similarity
+    v1 = np.array([1.0, 0.0, 0.0])
+    v2 = np.array([1.0, 0.0, 0.0])
+    v3 = np.array([0.0, 1.0, 0.0])
+    assert abs(cosine_similarity(v1, v2) - 1.0) < 1e-5
+    assert abs(cosine_similarity(v1, v3) - 0.0) < 1e-5
+
+
+def test_factory_supports_all_strategies():
+    from src.retrieval.factory import get_retriever
+    for strat in ["simple", "semantic", "sparse", "bm25", "hybrid", "rerank", "hyde", "query_expansion", "mmr", "hybrid_rerank"]:
+        r = get_retriever(strat, top_k=3)
+        assert r is not None
+        assert r.top_k == 3
+
+
+def test_file_sha256_computation(tmp_path):
+    from src.ingestion.ingest import compute_file_sha256
+    test_f = tmp_path / "sample.txt"
+    test_f.write_text("Hello DocRetriever RAG", encoding="utf-8")
+    hash1 = compute_file_sha256(test_f)
+    assert len(hash1) == 64  # Valid SHA-256 hex string
+    
+    test_f.write_text("Modified Content", encoding="utf-8")
+    hash2 = compute_file_sha256(test_f)
+    assert hash1 != hash2  # Hash changes on modification
+

@@ -43,7 +43,7 @@ class Retriever(ABC):
         if self._embedder is None:
             from sentence_transformers import SentenceTransformer
             self._embedder = SentenceTransformer(settings.embed_model)
-        embedding = self._embedder.encode([query], show_progress_bar=False)
+        embedding = self._embedder.encode([query], show_progress_bar=False, normalize_embeddings=True)
         return embedding[0].tolist()
     
     @property

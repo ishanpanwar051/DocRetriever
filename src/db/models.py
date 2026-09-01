@@ -68,3 +68,54 @@ class EvalRun(Base):
     metrics: Mapped[dict | None] = mapped_column(JSONB)
     notes: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), server_default=func.now())
+
+
+class Document(Base):
+    """
+    Represents an ingested document with SHA-256 hash for incremental ingestion diffing.
+    """
+    __tablename__ = 'documents'
+    id: Mapped[int] = mapped_column(primary_key=True)
+    title: Mapped[str] = mapped_column(Text, nullable=False)
+    source_file: Mapped[str] = mapped_column(Text, unique=True, nullable=False)
+    file_type: Mapped[str] = mapped_column(Text, default="markdown")
+    file_hash: Mapped[str] = mapped_column(Text, nullable=False)
+    file_size_bytes: Mapped[int] = mapped_column(Integer, default=0)
+    chunk_count: Mapped[int] = mapped_column(Integer, default=0)
+    corpus_name: Mapped[str] = mapped_column(Text, default="default")
+    metadata_: Mapped[dict] = mapped_column('metadata', JSONB, default=dict)
+    updated_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), server_default=func.now(), onupdate=func.now())
+    created_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), server_default=func.now())
+
+
+class QueryLog(Base):
+    """
+    Captures stage-by-stage latencies, strategies, and generated answers for telemetry.
+    """
+    __tablename__ = 'query_logs'
+    id: Mapped[int] = mapped_column(primary_key=True)
+    session_id: Mapped[str | None] = mapped_column(Text)
+    query: Mapped[str] = mapped_column(Text, nullable=False)
+    strategy: Mapped[str] = mapped_column(Text, nullable=False)
+    top_k: Mapped[int] = mapped_column(Integer, default=5)
+    total_latency_ms: Mapped[float] = mapped_column(nullable=False)
+    embed_latency_ms: Mapped[float | None] = mapped_column()
+    retrieval_latency_ms: Mapped[float | None] = mapped_column()
+    rerank_latency_ms: Mapped[float | None] = mapped_column()
+    gen_latency_ms: Mapped[float | None] = mapped_column()
+    sources: Mapped[list] = mapped_column(JSONB, default=list)
+    answer: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), server_default=func.now())
+
+
+class UserFeedback(Base):
+    """
+    Captures user feedback (thumbs up / down) on retrieved context and generated answers.
+    """
+    __tablename__ = 'user_feedback'
+    id: Mapped[int] = mapped_column(primary_key=True)
+    query_id: Mapped[int | None] = mapped_column(Integer)
+    query_text: Mapped[str] = mapped_column(Text, nullable=False)
+    rating: Mapped[int] = mapped_column(Integer, nullable=False)  # 1 = thumbs up, -1 = thumbs down
+    comment: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), server_default=func.now())
