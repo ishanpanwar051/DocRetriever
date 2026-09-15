@@ -1,8 +1,8 @@
 @echo off
 cd /d "%~dp0"
-title DocRetriever Launcher
+title DocuMind Launcher
 echo ============================================================
-echo           DocRetriever - Multi-Strategy RAG Launcher
+echo       🧠 DocuMind — Enterprise Multimodal RAG Launcher
 echo ============================================================
 echo.
 
@@ -39,15 +39,15 @@ echo.
 :: 4. Start FastAPI Backend in a new window
 echo [3/3] Starting Services...
 echo Launching FastAPI backend on http://localhost:8000 ...
-start "DocRetriever - FastAPI Backend" cmd /k "cd /d ""%~dp0"" && call venv\Scripts\activate.bat && python -m uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload"
+start "DocuMind - FastAPI Backend" cmd /k "cd /d ""%~dp0"" && call venv\Scripts\activate.bat && python -m uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload"
 
 :: 5. Start Streamlit UI in a new window
 echo Launching Streamlit UI on http://localhost:8501 ...
-start "DocRetriever - Streamlit UI" cmd /k "cd /d ""%~dp0"" && call venv\Scripts\activate.bat && python -m streamlit run ui\streamlit_app.py"
+start "DocuMind - Streamlit UI" cmd /k "cd /d ""%~dp0"" && call venv\Scripts\activate.bat && python -m streamlit run ui\dashboard.py"
 
 echo.
 echo ============================================================
-echo   DocRetriever is launching in separate command windows!
+echo   🧠 DocuMind is launching in separate command windows!
 echo   - FastAPI Backend: http://localhost:8000 (Docs: http://localhost:8000/docs)
 echo   - Streamlit UI:    http://localhost:8501
 echo ============================================================

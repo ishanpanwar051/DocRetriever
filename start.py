@@ -1,5 +1,5 @@
 """
-start.py — Interactive Single-Command Launcher for DocRetriever
+start.py — Interactive Single-Command Launcher for DocuMind
 
 Runs both FastAPI backend and Streamlit UI, checks system health,
 and automatically opens the UI in your browser.
@@ -21,7 +21,7 @@ if not VENV_PYTHON.exists():
 
 def print_header():
     print("=" * 65)
-    print("        🚀 DocRetriever - All-in-One Launcher")
+    print("      🧠 DocuMind — Enterprise Multimodal RAG Launcher")
     print("=" * 65)
     print()
 
@@ -35,7 +35,7 @@ def check_env():
             print("[OK] .env created.")
 
 def check_docker():
-    print("[1/4] Checking Docker / PostgreSQL...")
+    print("[1/4] Checking Docker / PostgreSQL + pgvector...")
     try:
         res = subprocess.run(["docker", "compose", "up", "-d"], cwd=str(PROJECT_ROOT), capture_output=True, text=True, timeout=15)
         if res.returncode == 0:
@@ -47,22 +47,22 @@ def check_docker():
         print("      (If you are running PostgreSQL locally or in Docker Desktop, please ensure it is started)")
 
 def check_groq():
-    print("[2/4] Checking Groq API...")
+    print("[2/4] Checking LLM Engine (Groq / Ollama)...")
     try:
         import httpx
         from config.settings import settings
-        resp = httpx.get(
-            f"{settings.groq_base_url}/models",
-            headers={"Authorization": f"Bearer {settings.groq_api_key}"},
-            timeout=5,
-        )
-        if resp.status_code == 200:
-            print("      ✅ Groq API is reachable.")
-            return
+        if settings.groq_api_key:
+            resp = httpx.get(
+                f"{settings.groq_base_url}/models",
+                headers={"Authorization": f"Bearer {settings.groq_api_key}"},
+                timeout=5,
+            )
+            if resp.status_code == 200:
+                print("      ✅ Groq API is reachable.")
+                return
     except Exception:
         pass
-    print("      ⚠️ Groq API not reachable.")
-    print("      Tip: Set GROQ_API_KEY in .env (get free key at https://console.groq.com/keys)")
+    print("      ℹ️ Running in Local / Ollama Mode (http://localhost:11434).")
 
 def stream_output(process, prefix):
     for line in iter(process.stdout.readline, ''):
@@ -101,7 +101,7 @@ def main():
 
     print("[4/4] Starting Streamlit UI (http://localhost:8501)...")
     streamlit_cmd = [
-        str(VENV_PYTHON), "-m", "streamlit", "run", "ui/streamlit_app.py",
+        str(VENV_PYTHON), "-m", "streamlit", "run", "ui/dashboard.py",
         "--server.headless", "false",
         "--server.port", "8501"
     ]
@@ -120,7 +120,7 @@ def main():
 
     print()
     print("=" * 65)
-    print("  ✅ All services started!")
+    print("  ✅ All DocuMind services started!")
     print("  - Streamlit UI:    http://localhost:8501")
     print("  - FastAPI Backend: http://localhost:8000")
     print("  - Swagger API:     http://localhost:8000/docs")
@@ -136,7 +136,7 @@ def main():
         while True:
             time.sleep(1)
     except KeyboardInterrupt:
-        print("\nStopping DocRetriever services...")
+        print("\nStopping DocuMind services...")
         api_proc.terminate()
         streamlit_proc.terminate()
         print("Done. Goodbye!")

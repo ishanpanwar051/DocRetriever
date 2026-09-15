@@ -1,11 +1,11 @@
-# run_project.ps1 — PowerShell Launcher for DocRetriever
+# run_project.ps1 — PowerShell Launcher for DocuMind Enterprise RAG
 
 $scriptDir = if ($PSScriptRoot) { $PSScriptRoot } else { (Get-Location).Path }
 Set-Location $scriptDir
 
 Write-Host ""
 Write-Host "============================================================" -ForegroundColor Cyan
-Write-Host "         DocRetriever - Multi-Strategy RAG Launcher         " -ForegroundColor Cyan
+Write-Host "      🧠 DocuMind — Enterprise Multimodal RAG Launcher      " -ForegroundColor Cyan
 Write-Host "============================================================" -ForegroundColor Cyan
 Write-Host ""
 
@@ -44,11 +44,11 @@ Start-Process powershell -ArgumentList "-ExecutionPolicy", "Bypass", "-NoExit", 
 
 # 5. Start Streamlit in new terminal
 Write-Host "  -> Starting Streamlit UI (http://localhost:8501)..." -ForegroundColor Cyan
-Start-Process powershell -ArgumentList "-ExecutionPolicy", "Bypass", "-NoExit", "-Command", "Set-Location '$scriptDir'; & '$venvPython' -m streamlit run ui\streamlit_app.py"
+Start-Process powershell -ArgumentList "-ExecutionPolicy", "Bypass", "-NoExit", "-Command", "Set-Location '$scriptDir'; & '$venvPython' -m streamlit run ui\dashboard.py"
 
 Write-Host ""
 Write-Host "============================================================" -ForegroundColor Cyan
-Write-Host "  DocRetriever services launched in separate windows!" -ForegroundColor Green
+Write-Host "  🧠 DocuMind services launched in separate windows!" -ForegroundColor Green
 Write-Host "  - FastAPI Backend: http://localhost:8000 (Docs: http://localhost:8000/docs)" -ForegroundColor White
 Write-Host "  - Streamlit UI:    http://localhost:8501" -ForegroundColor White
 Write-Host "============================================================" -ForegroundColor Cyan

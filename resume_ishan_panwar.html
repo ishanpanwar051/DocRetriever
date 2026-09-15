@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ishan Singh Panwar - SDE Intern Resume</title>
+  <title>Ishan Singh Panwar - Python Developer Resume</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
@@ -264,38 +264,40 @@
 
       <div class="proj-item">
         <div class="proj-header">
-          <div><span class="bold-title">Distributed Rate Limiter</span> | <span class="sub-italic">Node.js, TypeScript, Redis (Lua Scripts), PostgreSQL, Prisma ORM, Docker, k6</span></div>
-          <div class="proj-links"><a href="https://github.com/ishanpanwar051" target="_blank">GitHub</a> | <a href="https://github.com/ishanpanwar051" target="_blank">Live</a></div>
+          <div><span class="bold-title">Real-Time Sentiment Analysis API &amp; Microservice</span> | <span class="sub-italic">Python 3.11, FastAPI, Docker, HuggingFace, LRU Cache, PyTest, Pydantic</span></div>
+          <div class="proj-links"><a href="https://github.com/ishanpanwar051" target="_blank">GitHub</a></div>
         </div>
         <ul class="bullet-list">
-          <li>Engineered a horizontally scalable distributed rate-limiting microservice supporting Token Bucket, Leaky Bucket, and Sliding Window Log algorithms.</li>
-          <li>Wrote atomic Redis Lua scripts to eliminate race conditions during concurrent request processing, securing sub-5ms evaluation latency.</li>
-          <li>Configured multi-tier throttling rules (per-IP, per-user, endpoint-specific) with dynamic IP whitelisting capabilities.</li>
-          <li>Validated performance resilience using k6 and Autocannon, sustaining 10,000+ concurrent requests/sec with stable low latency under heavy load.</li>
+          <li>Architected and containerized a high-throughput RESTful microservice using <strong>FastAPI</strong> and <strong>Python 3.11</strong> for real-time and batch NLP sentiment classification.</li>
+          <li>Optimized API latency by 50% via in-memory <strong>LRU caching</strong>, lazy model initialization, and custom IP-based request rate limiting middleware.</li>
+          <li>Engineered batch processing endpoints supporting up to 100 concurrent payloads with strict <strong>Pydantic</strong> request validation and error handling.</li>
+          <li>Configured multi-stage <strong>Docker</strong> builds for lightweight deployment and authored automated test suites using <strong>PyTest</strong>.</li>
         </ul>
       </div>
 
       <div class="proj-item">
         <div class="proj-header">
-          <div><span class="bold-title">CommerceFlow — E-Commerce Platform</span> | <span class="sub-italic">Express.js, TypeScript, PostgreSQL, Prisma ORM, Redis, BullMQ, Stripe, Docker</span></div>
-          <div class="proj-links"><a href="https://github.com/ishanpanwar051" target="_blank">GitHub</a> | <a href="https://github.com/ishanpanwar051" target="_blank">Live</a></div>
+          <div><span class="bold-title">DocRetriever — Multi-Strategy Retrieval Engine</span> | <span class="sub-italic">Python 3.11, FastAPI, PostgreSQL 16 (pgvector), Streamlit, OOP Factory Pattern</span></div>
+          <div class="proj-links"><a href="https://github.com/ishanpanwar051" target="_blank">GitHub</a></div>
         </div>
         <ul class="bullet-list">
-          <li>Designed and built a scalable REST API backend supporting complex inventory logic and PostgreSQL relational schemas (17 models) via Prisma ORM.</li>
-          <li>Secured transaction workflows by integrating Stripe payment webhooks with idempotent verification, atomic database locks, and transactional rollbacks to prevent inventory overselling.</li>
-          <li>Reduced overall API latency by 45% by implementing distributed Redis caching and offloading heavy operations (like invoice generation) to BullMQ asynchronous queues.</li>
+          <li>Engineered a modular document retrieval engine in <strong>Python</strong>, benchmarking 4 distinct search architectures on large technical corpuses.</li>
+          <li>Designed scalable database schemas in <strong>PostgreSQL 16 with pgvector</strong> for cosine similarity search and full-text BM25 hybrid ranking (RRF).</li>
+          <li>Implemented clean <strong>Object-Oriented Factory Patterns</strong> (<code>get_retriever</code>) and abstract interfaces to decouple chunking and ranking strategies.</li>
+          <li>Enhanced retrieval precision from 60% to 85% through semantic boundary detection, cross-encoder re-ranking, and custom evaluation harnesses.</li>
         </ul>
       </div>
 
       <div class="proj-item">
         <div class="proj-header">
-          <div><span class="bold-title">QuickBite — Food Delivery Platform</span> | <span class="sub-italic">React 19, Redux Toolkit, Express.js, TypeScript, MongoDB, Redis, Socket.IO, Stripe, Docker</span></div>
-          <div class="proj-links"><a href="https://github.com/ishanpanwar051" target="_blank">GitHub</a> | <a href="https://github.com/ishanpanwar051" target="_blank">Live</a></div>
+          <div><span class="bold-title">PR Sage — Autonomous GitHub Code Reviewer</span> | <span class="sub-italic">Python 3.11, Python AST (ast module), FastAPI, GitHub Webhooks, OWASP Security</span></div>
+          <div class="proj-links"><a href="https://github.com/ishanpanwar051" target="_blank">GitHub</a></div>
         </div>
         <ul class="bullet-list">
-          <li>Architected full-stack food delivery application using a clean layered architecture, securing sessions via JWT, Google OAuth, HTTP-only cookies, and OTP-based password recovery.</li>
-          <li>Engineered real-time bidirectional order tracking and live GPS updates using Socket.IO event streams, supported by BullMQ background workers for reliable job processing.</li>
-          <li>Containerized application microservices using Docker, integrating GitHub Actions CI/CD pipeline and Redis caching for optimized data retrieval.</li>
+          <li>Developed an automated code quality and security auditor leveraging Python's native <strong><code>ast</code> (Abstract Syntax Tree)</strong> module for static code analysis.</li>
+          <li>Built a <strong>FastAPI Webhook Gateway</strong> to ingest GitHub Pull Request events, parse unified git diffs, and generate line-by-line review annotations.</li>
+          <li>Implemented security heuristics to scan for SQL injections, hardcoded credentials, and OWASP Top 10 vulnerabilities before merging.</li>
+          <li>Engineered deterministic state machine pipelines with line-clamping guardrails and alert fatigue noise caps to guarantee high-confidence feedback.</li>
         </ul>
       </div>
     </section>
@@ -304,11 +306,10 @@
     <section>
       <h2 class="section-title">Technical Skills</h2>
       <ul class="skills-list">
-        <li><strong>Languages:</strong> C++, JavaScript (ES6+), TypeScript, Python, SQL</li>
-        <li><strong>Backend Development:</strong> Node.js, Express.js, RESTful APIs, Webhooks, Socket.IO, Asynchronous Queues (BullMQ)</li>
-        <li><strong>Frontend Development:</strong> React.js (React 19), Redux Toolkit, HTML5, CSS3, Tailwind CSS, Bootstrap</li>
-        <li><strong>Databases &amp; Caching:</strong> PostgreSQL, MongoDB, Redis, Prisma ORM, MySQL</li>
-        <li><strong>Tools &amp; Infrastructure:</strong> Git, GitHub, Docker, Kubernetes, Postman, GitHub Actions (CI/CD), AWS (EC2, S3), k6, Autocannon</li>
+        <li><strong>Languages:</strong> Python (Primary), SQL, C++, TypeScript, JavaScript</li>
+        <li><strong>Backend &amp; Frameworks:</strong> FastAPI, Flask, RESTful APIs, Webhooks, Pydantic, Asyncio, Node.js</li>
+        <li><strong>Databases &amp; Caching:</strong> PostgreSQL (pgvector), SQLite, Redis, MySQL, Prisma ORM</li>
+        <li><strong>Tools &amp; Infrastructure:</strong> Docker, Git, GitHub Actions (CI/CD), PyTest, Postman, Linux / Bash</li>
         <li><strong>Core CS Fundamentals:</strong> Data Structures &amp; Algorithms, Object-Oriented Programming (OOP), DBMS, Operating Systems, Computer Networks</li>
       </ul>
     </section>

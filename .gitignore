@@ -60,3 +60,4 @@ logs/
 *.ipynb
 
 powershell.bat
+powershell.cmd

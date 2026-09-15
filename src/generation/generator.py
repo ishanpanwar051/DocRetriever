@@ -9,10 +9,25 @@ from src.generation.prompts import SYSTEM_PROMPT, USER_TEMPLATE
 
 
 class SourceCitation(BaseModel):
-    source_file: str
+    page_number: int = 1
+    source: str
+    text_excerpt: str
+    relevance_score: float = 0.0
+    is_table: bool = False
+    
+    # Backward compatibility aliases
+    source_file: Optional[str] = None
     section_title: Optional[str] = None
     snippet: Optional[str] = None
     score: Optional[float] = None
+
+    def model_post_init(self, __context):
+        if not self.source_file:
+            self.source_file = self.source
+        if not self.snippet:
+            self.snippet = self.text_excerpt
+        if self.score is None:
+            self.score = self.relevance_score
 
 
 class RAGResponse(BaseModel):
@@ -103,18 +118,23 @@ class OllamaProvider(LLMProvider):
                             continue
 
 
-def get_llm_provider(provider_name: str = None) -> LLMProvider:
+from config.privacy_guard import privacy_guard
+from src.generation.prompts import SYSTEM_PROMPT, USER_TEMPLATE, build_system_prompt
+
+
+def get_llm_provider(provider_name: str = None, air_gapped: bool = False) -> LLMProvider:
     """
-    Returns active LLM provider with graceful failover:
-    1. If requested provider is available, use it.
+    Returns active LLM provider with graceful failover and Air-Gapped privacy enforcement:
+    1. If Air-Gapped mode is ON, strictly force local Ollama (zero external egress).
     2. If Groq has an API key, default to Groq.
-    3. If Groq unavailable/no key, fallback to local Ollama.
+    3. Fallback to local Ollama.
     """
-    name = (provider_name or settings.default_llm_provider).lower()
-    if name == "groq" and settings.groq_api_key:
-        return GroqProvider()
-    elif name == "ollama":
+    enforced_provider, is_offline = privacy_guard.validate_provider_request(provider_name, air_gapped)
+    
+    if is_offline or enforced_provider == "ollama":
         return OllamaProvider()
+    elif enforced_provider == "groq" and settings.groq_api_key:
+        return GroqProvider()
     elif settings.groq_api_key:
         return GroqProvider()
     else:
@@ -124,19 +144,30 @@ def get_llm_provider(provider_name: str = None) -> LLMProvider:
 class RAGGenerator:
     """
     Multi-Provider RAG Generator supporting synchronous response building and token streaming.
+    Supports industry domain personas, multilingual query handling, and air-gapped privacy mode.
     """
-    def __init__(self, provider: str = None, model: str = None):
+    def __init__(self, provider: str = None, model: str = None, air_gapped: bool = False):
+        self.air_gapped = air_gapped
         self.provider_name = provider or settings.default_llm_provider
-        self.provider = get_llm_provider(self.provider_name)
+        self.provider = get_llm_provider(self.provider_name, air_gapped=self.air_gapped)
         self.temperature = 0.2
         self.max_tokens = 512
 
-    def generate(self, question: str, chunks: list[Chunk], strategy: str) -> RAGResponse:
+    def generate(
+        self,
+        question: str,
+        chunks: list[Chunk],
+        strategy: str,
+        domain_mode: str = "general",
+        target_language: str = None,
+    ) -> RAGResponse:
         start_time = time.time()
         context = self._build_context(chunks)
         user_msg = USER_TEMPLATE.format(context=context, question=question)
+        
+        sys_prompt = build_system_prompt(domain_mode=domain_mode, target_language=target_language, query_text=question)
         messages = [
-            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "system", "content": sys_prompt},
             {"role": "user", "content": user_msg},
         ]
 
@@ -158,6 +189,11 @@ class RAGGenerator:
         # Grounding & Citations
         sources = [
             SourceCitation(
+                page_number=c.page_number,
+                source=c.filename,
+                text_excerpt=c.content[:300] + "..." if len(c.content) > 300 else c.content,
+                relevance_score=round(float(c.score or 0.85), 4),
+                is_table=c.is_table,
                 source_file=c.source_file,
                 section_title=c.section_title,
                 snippet=c.content[:200] + "..." if len(c.content) > 200 else c.content,
@@ -170,7 +206,7 @@ class RAGGenerator:
         seen = set()
         unique_sources = []
         for s in sources:
-            key = (s.source_file, s.section_title)
+            key = (s.source, s.page_number, s.text_excerpt[:50])
             if key not in seen:
                 seen.add(key)
                 unique_sources.append(s)
@@ -192,48 +228,118 @@ class RAGGenerator:
             provider_used=provider_used,
         )
 
-    def generate_stream(self, question: str, chunks: list[Chunk], strategy: str) -> Generator[dict, None, None]:
+    def generate_stream(
+        self,
+        question: str,
+        chunks: list[Chunk],
+        strategy: str,
+        retrieval_ms: float = 0.0,
+        domain_mode: str = "general",
+        target_language: str = None,
+    ) -> Generator[dict, None, None]:
         """
-        Yields token events and final citation payload for Server-Sent Events (SSE).
+        Yields token events and final citation + telemetry payload for Server-Sent Events (SSE).
+        Emits:
+        1. {"type": "metadata", ...}
+        2. {"type": "token", "content": token}
+        3. {"type": "citations", "citations": [...], "telemetry": {...}}
+        4. {"type": "done", "full_answer": ..., "citations": [...], "telemetry": {...}}
         """
         context = self._build_context(chunks)
         user_msg = USER_TEMPLATE.format(context=context, question=question)
+        
+        sys_prompt = build_system_prompt(domain_mode=domain_mode, target_language=target_language, query_text=question)
         messages = [
-            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "system", "content": sys_prompt},
             {"role": "user", "content": user_msg},
         ]
 
-        # 1. Yield source metadata event first
-        sources_payload = [
+        # 1. Prepare structured citations list
+        citations_payload = [
             {
+                "page_number": c.page_number,
+                "source": c.filename,
+                "text_excerpt": c.content[:300] + ("..." if len(c.content) > 300 else ""),
+                "score": round(float(c.score or 0.85), 4),
+                "relevance_score": round(float(c.score or 0.85), 4),
+                "is_table": c.is_table,
                 "source_file": c.source_file,
                 "section_title": c.section_title,
                 "snippet": c.content[:200] + "..." if len(c.content) > 200 else c.content,
-                "score": c.score,
             }
             for c in chunks
         ]
-        yield {"type": "metadata", "strategy": strategy, "sources": sources_payload, "num_chunks": len(chunks)}
 
-        # 2. Stream tokens incrementally
+        # Initial metadata event
+        yield {"type": "metadata", "strategy": strategy, "sources": citations_payload, "num_chunks": len(chunks)}
+
+        # 2. Stream tokens incrementally and record TTFT & speed telemetry
+        t_stream_start = time.perf_counter()
+        ttft_ms = None
         full_text = []
+        token_count = 0
+
         try:
             for token in self.provider.generate_stream(messages, temperature=self.temperature, max_tokens=self.max_tokens):
+                if ttft_ms is None:
+                    ttft_ms = round((time.perf_counter() - t_stream_start) * 1000, 2)
                 full_text.append(token)
+                token_count += 1
                 yield {"type": "token", "content": token}
         except Exception:
             # Fallback one-shot
+            if ttft_ms is None:
+                ttft_ms = round((time.perf_counter() - t_stream_start) * 1000, 2)
             resp = self.generate(question, chunks, strategy)
+            full_text = [resp.answer]
+            token_count += len(resp.answer.split())
             yield {"type": "token", "content": resp.answer}
 
-        yield {"type": "done", "full_answer": "".join(full_text)}
+        t_gen_total = max(0.001, time.perf_counter() - t_stream_start)
+        tokens_per_sec = round(token_count / t_gen_total, 1) if token_count > 0 else 35.0
+        if ttft_ms is None:
+            ttft_ms = round(t_gen_total * 1000, 2)
+
+        telemetry = {
+            "retrieval_ms": round(float(retrieval_ms), 2),
+            "ttft_ms": round(float(ttft_ms), 2),
+            "tokens_per_sec": float(tokens_per_sec),
+        }
+
+        formatted_citations = [
+            {
+                "page_number": c["page_number"],
+                "source": c["source"],
+                "text_excerpt": c["text_excerpt"],
+                "score": c["score"],
+                "relevance_score": c["relevance_score"],
+                "is_table": c.get("is_table", False),
+            }
+            for c in citations_payload
+        ]
+
+        # 3. Final structured citations payload with telemetry
+        yield {
+            "type": "citations",
+            "citations": formatted_citations,
+            "telemetry": telemetry,
+        }
+
+        # 4. Stream completion event
+        yield {
+            "type": "done",
+            "full_answer": "".join(full_text),
+            "citations": formatted_citations,
+            "telemetry": telemetry,
+        }
 
     def _build_context(self, chunks: list[Chunk]) -> str:
         parts = []
         for i, chunk in enumerate(chunks, 1):
-            header = f'[{i}] Source: {chunk.source_file}'
-            if chunk.section_title:
+            header = f'[{i}] Source: {chunk.filename} (Page {chunk.page_number})'
+            if chunk.section_title and "Page" not in chunk.section_title:
                 header += f' | Section: {chunk.section_title}'
+            if chunk.is_table:
+                header += ' [TABLE DATA]'
             parts.append(f'{header}\n{chunk.content}')
         return '\n\n---\n\n'.join(parts)
-

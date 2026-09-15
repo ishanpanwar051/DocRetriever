@@ -1,3 +1,4 @@
+from typing import Optional
 from collections import defaultdict
 from sqlalchemy import text
 from src.db.connection import get_db
@@ -6,18 +7,7 @@ from .base import Retriever, Chunk
 class HybridRetriever(Retriever):
     """
     Strategy 3: Hybrid search = vector (semantic) + keyword (BM25-like tsvector).
-    
-    WHY HYBRID:
-    - Dense vectors are great for semantic meaning but struggle with exact matches (IDs, names, jargon).
-    - Sparse keyword search (tsvector) is perfect for exact terminology but misses synonyms.
-    - Combining them gives the best of both worlds.
-    
-    WHY RRF (Reciprocal Rank Fusion):
-    - RRF score = sum(1/(k + rank_i)). It merges ranked lists without requiring the scores to be calibrated.
-    - k=60 is empirically optimal (Cormack 2009) as it dampens the impact of extreme top ranks, smoothing the distribution.
-    
-    WHY ALPHA WEIGHTS:
-    - Allows tuning the balance between semantic and keyword importance (e.g., alpha=0.7 favors semantic meaning).
+    Fuses top candidates via Reciprocal Rank Fusion (RRF k=60).
     """
     def __init__(self, top_k=5, alpha=0.5, rrf_k=60, chunk_strategy='simple'):
         super().__init__(top_k)
@@ -25,43 +15,69 @@ class HybridRetriever(Retriever):
         self.rrf_k = rrf_k
         self.chunk_strategy = chunk_strategy
     
-    def retrieve(self, query: str) -> list[Chunk]:
+    def retrieve(self, query: str, document_id: Optional[str] = None) -> list[Chunk]:
         # Step 1: Vector search for broad semantic matches
-        vector_results = self._vector_search(query, limit=20)
+        vector_results = self._vector_search(query, limit=20, document_id=document_id)
         
         # Step 2: Keyword search for exact terminology matches
-        keyword_results = self._keyword_search(query, limit=20)
+        keyword_results = self._keyword_search(query, limit=20, document_id=document_id)
         
         # Step 3: RRF fusion to balance both sets
         fused = self._rrf_fusion(vector_results, keyword_results)
         
         return fused[:self.top_k]
     
-    def _vector_search(self, query: str, limit: int) -> list[tuple[int, float]]:
+    def _vector_search(self, query: str, limit: int, document_id: Optional[str] = None) -> list[tuple[int, float]]:
         query_vec = self.embed_query(query)
-        sql = text("""
+        doc_filter = ""
+        params = {
+            "query_vec": str(query_vec),
+            "chunk_strategy": self.chunk_strategy,
+            "limit": limit,
+        }
+        if document_id:
+            doc_filter = "AND (source_file = :doc_id OR metadata->>'document_id' = :doc_id OR metadata->>'filename' = :doc_id)"
+            params["doc_id"] = document_id
+
+        sql = text(f"""
             SELECT id, 1 - (embedding <=> CAST(:query_vec AS vector)) AS score
             FROM document_chunks
-            WHERE chunk_strategy = :chunk_strategy
+            WHERE (chunk_strategy = :chunk_strategy OR :chunk_strategy = 'any' OR chunk_strategy IS NULL)
+              {doc_filter}
             ORDER BY embedding <=> CAST(:query_vec AS vector) ASC
             LIMIT :limit
         """)
         with get_db() as db:
-            result = db.execute(sql, {"query_vec": str(query_vec), "chunk_strategy": self.chunk_strategy, "limit": limit})
+            result = db.execute(sql, params)
             return [(row.id, float(row.score)) for row in result]
             
-    def _keyword_search(self, query: str, limit: int) -> list[tuple[int, float]]:
-        sql = text("""
+    def _keyword_search(self, query: str, limit: int, document_id: Optional[str] = None) -> list[tuple[int, float]]:
+        doc_filter = ""
+        params = {
+            "query": query,
+            "chunk_strategy": self.chunk_strategy,
+            "limit": limit,
+        }
+        if document_id:
+            doc_filter = "AND (source_file = :doc_id OR metadata->>'document_id' = :doc_id OR metadata->>'filename' = :doc_id)"
+            params["doc_id"] = document_id
+
+        sql = text(f"""
             SELECT id, ts_rank(content_tsv, plainto_tsquery('english', :query)) AS score
             FROM document_chunks
-            WHERE chunk_strategy = :chunk_strategy
+            WHERE (chunk_strategy = :chunk_strategy OR :chunk_strategy = 'any' OR chunk_strategy IS NULL)
               AND content_tsv @@ plainto_tsquery('english', :query)
+              {doc_filter}
             ORDER BY score DESC
             LIMIT :limit
         """)
         with get_db() as db:
-            result = db.execute(sql, {"query": query, "chunk_strategy": self.chunk_strategy, "limit": limit})
-            return [(row.id, float(row.score)) for row in result]
+            try:
+                result = db.execute(sql, params)
+                return [(row.id, float(row.score)) for row in result]
+            except Exception:
+                # Fallback if query contains special characters
+                return []
             
     def _rrf_fusion(self, vec_results: list[tuple[int, float]], kw_results: list[tuple[int, float]]) -> list[Chunk]:
         rrf_scores = defaultdict(float)

@@ -5,10 +5,26 @@ from src.retrieval.hybrid import HybridRetriever
 from eval.metrics import recall_at_k, mrr, compute_retrieval_metrics
 
 
-def test_chunk_defaults():
-    chunk = Chunk(id=1, content="test", source_file="a.md", section_title=None, chunk_index=0)
+def test_chunk_defaults_and_properties():
+    chunk = Chunk(id=1, content="test content", source_file="doc.pdf", section_title="Page 4 - Table 1", chunk_index=0)
     assert chunk.score == 0.0
     assert chunk.metadata == {}
+    assert chunk.page_number == 4
+    assert chunk.is_table is True
+    assert chunk.filename == "doc.pdf"
+
+    chunk_with_meta = Chunk(
+        id=2,
+        content="| A | B |\n|---|---|\n| 1 | 2 |",
+        source_file="report.pdf",
+        section_title="Financials",
+        chunk_index=1,
+        metadata={"page_number": 7, "is_table": True, "filename": "financial_report.pdf", "document_id": "doc_abc"}
+    )
+    assert chunk_with_meta.page_number == 7
+    assert chunk_with_meta.is_table is True
+    assert chunk_with_meta.filename == "financial_report.pdf"
+    assert chunk_with_meta.document_id == "doc_abc"
 
 
 def test_recall_at_k_found():
@@ -84,4 +100,3 @@ def test_file_sha256_computation(tmp_path):
     test_f.write_text("Modified Content", encoding="utf-8")
     hash2 = compute_file_sha256(test_f)
     assert hash1 != hash2  # Hash changes on modification
-
