@@ -394,52 +394,69 @@ with st.sidebar:
     if uploaded_pdf is not None:
         upload_btn = st.button("🚀 Ingest & Index PDF", use_container_width=True, type="primary")
         if upload_btn:
-            progress_bar = st.progress(0, text="Uploading PDF to DocuMind engine...")
+            progress_bar = st.progress(0, text="Processing PDF in DocuMind engine...")
             try:
-                time.sleep(0.1)
-                progress_bar.progress(35, text="Extracting pages & converting tables to Markdown...")
-                
-                files_payload = {
-                    "file": (uploaded_pdf.name, uploaded_pdf.getvalue(), "application/pdf")
-                }
-                data_payload = {"chunk_strategy": "simple", "prefer_ollama": "false"}
-
                 t_up_start = time.perf_counter()
-                resp = httpx.post(
-                    f"{API_BASE}/api/documents/upload",
-                    files=files_payload,
-                    data=data_payload,
-                    timeout=180.0,
-                )
+                progress_bar.progress(30, text="⚡ Fast Parsing: Extracting text & converting tables to Markdown...")
+                pdf_bytes = uploaded_pdf.getvalue()
                 
-                progress_bar.progress(85, text="Generating embeddings & indexing into pgvector...")
-                time.sleep(0.2)
+                doc_id = None
+                pages = 1
+                chunks = 0
+                
+                # 1. Attempt backend API first with short timeout (5s)
+                try:
+                    files_payload = {
+                        "file": (uploaded_pdf.name, pdf_bytes, "application/pdf")
+                    }
+                    data_payload = {"chunk_strategy": "simple", "prefer_ollama": "false"}
+                    resp = httpx.post(
+                        f"{API_BASE}/api/documents/upload",
+                        files=files_payload,
+                        data=data_payload,
+                        timeout=5.0,
+                    )
+                    if resp.status_code == 200:
+                        res_data = resp.json()
+                        doc_id = res_data.get("document_id")
+                        pages = res_data.get("pages") or res_data.get("total_pages", 1)
+                        chunks = res_data.get("chunks") or res_data.get("total_chunks", 0)
+                except Exception:
+                    pass
 
-                if resp.status_code == 200:
-                    res_data = resp.json()
-                    doc_id = res_data.get("document_id")
-                    pages = res_data.get("pages") or res_data.get("total_pages", 1)
-                    chunks = res_data.get("chunks") or res_data.get("total_chunks", 0)
-                    dur = round(time.perf_counter() - t_up_start, 2)
+                # 2. Resilient local fallback if API server is not running
+                if not doc_id:
+                    progress_bar.progress(60, text="⚡ Indexing via high-speed local engine (<1s)...")
+                    from src.ingestion.ingest import ingest_pdf_bytes_or_file
+                    doc_id, pages, chunks = ingest_pdf_bytes_or_file(
+                        file_input=pdf_bytes,
+                        filename=uploaded_pdf.name,
+                        chunk_strategy="simple",
+                    )
 
-                    progress_bar.progress(100, text="✅ Indexing Complete!")
-                    st.success(f"**Indexed {pages} pages, {chunks} chunks** in {dur}s.")
-                    
-                    st.session_state.active_document_id = doc_id
-                    st.session_state.active_document_name = uploaded_pdf.name
-                    st.session_state.indexed_docs.insert(0, {
-                        "name": uploaded_pdf.name,
-                        "id": doc_id,
-                        "pages": pages,
-                        "chunks": chunks
-                    })
-                    st.toast(f"Scoped search & insights to {uploaded_pdf.name}", icon="📄")
-                else:
-                    progress_bar.empty()
-                    st.error(f"Upload failed: {resp.text}")
+                dur = round(time.perf_counter() - t_up_start, 2)
+                progress_bar.progress(100, text="✅ Indexing Complete!")
+                st.success(f"⚡ **Indexed {pages} pages, {chunks} chunks** in {dur}s.")
+                
+                # 3. Cache document info in session state for instant scoped search & insights
+                st.session_state.active_document_id = doc_id
+                st.session_state.active_document_name = uploaded_pdf.name
+                
+                from src.ingestion.ingest import MEMORY_DOCUMENTS_STORE
+                if doc_id in MEMORY_DOCUMENTS_STORE:
+                    cached_chunks = MEMORY_DOCUMENTS_STORE[doc_id]
+                    st.session_state.active_document_text = "\n\n".join(c["content"] for c in cached_chunks)
+
+                st.session_state.indexed_docs.insert(0, {
+                    "name": uploaded_pdf.name,
+                    "id": doc_id,
+                    "pages": pages,
+                    "chunks": chunks
+                })
+                st.toast(f"Scoped search & insights to {uploaded_pdf.name}", icon="📄")
             except Exception as exc:
                 progress_bar.empty()
-                st.error(f"Backend error: {exc}")
+                st.error(f"Upload error: {exc}")
 
     # Indexed Documents List (Chips)
     if docs_catalog or st.session_state.indexed_docs:
@@ -767,7 +784,7 @@ with tab_insights:
         r_ins = httpx.post(
             f"{API_BASE}/api/documents/insights",
             json={"document_id": current_doc_filter, "filename": st.session_state.active_document_name},
-            timeout=10.0,
+            timeout=3.0,
         )
         if r_ins.status_code == 200:
             insights_data = r_ins.json()
@@ -775,8 +792,17 @@ with tab_insights:
         pass
 
     if not insights_data:
+        active_text = st.session_state.get("active_document_text", "")
+        if not active_text and current_doc_filter:
+            from src.ingestion.ingest import MEMORY_DOCUMENTS_STORE
+            if current_doc_filter in MEMORY_DOCUMENTS_STORE:
+                active_text = "\n\n".join(c["content"] for c in MEMORY_DOCUMENTS_STORE[current_doc_filter])
+        
+        if not active_text:
+            active_text = "DocuMind Technical Documentation & Compliance Overview. High-performance enterprise retrieval."
+
         insights_data = insights_engine.analyze_document(
-            text_content="DocuMind Technical Documentation & Compliance Overview.",
+            text_content=active_text,
             filename=st.session_state.active_document_name,
         )
 
