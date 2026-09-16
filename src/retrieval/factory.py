@@ -308,11 +308,15 @@ class HybridRerankRetriever(Retriever):
 }
 
 _ROOT = Path(__file__).resolve().parent.parent.parent
-for rel_path, code in _MODULES.items():
-    p = _ROOT / rel_path
-    if not p.exists() or len(p.read_text(encoding="utf-8").strip()) < 50:
-        p.parent.mkdir(parents=True, exist_ok=True)
-        p.write_text(code, encoding="utf-8")
+try:
+    for rel_path, code in _MODULES.items():
+        p = _ROOT / rel_path
+        if not p.exists() or len(p.read_text(encoding="utf-8").strip()) < 50:
+            p.parent.mkdir(parents=True, exist_ok=True)
+            p.write_text(code, encoding="utf-8")
+except (OSError, PermissionError):
+    # Read-only filesystem (e.g. Streamlit Cloud) — skip stub generation
+    pass
 
 from .base import Retriever
 from .simple import SimpleRetriever

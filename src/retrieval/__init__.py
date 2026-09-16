@@ -16,8 +16,13 @@ _MODULES_TO_INIT = [
 ]
 
 _ROOT = Path(__file__).resolve().parent.parent.parent
-for _rel in _MODULES_TO_INIT:
-    _p = _ROOT / _rel
-    if not _p.exists():
-        _p.parent.mkdir(parents=True, exist_ok=True)
-        _p.write_text("# Placeholder\n", encoding="utf-8")
+try:
+    for _rel in _MODULES_TO_INIT:
+        _p = _ROOT / _rel
+        if not _p.exists():
+            _p.parent.mkdir(parents=True, exist_ok=True)
+            _p.write_text("# Placeholder\n", encoding="utf-8")
+except (OSError, PermissionError):
+    # Read-only filesystem (e.g. Streamlit Cloud) — skip
+    pass
+

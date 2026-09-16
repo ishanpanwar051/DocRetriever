@@ -324,9 +324,10 @@ def load_ablation_data():
     return FALLBACK_ABLATION
 
 
+@st.cache_data(ttl=30, show_spinner=False)
 def probe_health():
     try:
-        r = httpx.get(f"{API_BASE}/health", timeout=2.0)
+        r = httpx.get(f"{API_BASE}/health", timeout=1.5)
         if r.status_code == 200:
             return r.json()
     except Exception:
@@ -341,9 +342,10 @@ def probe_health():
     }
 
 
+@st.cache_data(ttl=60, show_spinner=False)
 def fetch_documents():
     try:
-        resp = httpx.get(f"{API_BASE}/documents", timeout=3.0)
+        resp = httpx.get(f"{API_BASE}/documents", timeout=1.5)
         if resp.status_code == 200:
             return resp.json().get("documents", [])
     except Exception:
