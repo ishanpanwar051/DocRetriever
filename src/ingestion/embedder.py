@@ -8,8 +8,12 @@ Provides:
 
 import httpx
 from tqdm import tqdm
-from sentence_transformers import SentenceTransformer
 from config.settings import settings
+
+try:
+    from sentence_transformers import SentenceTransformer
+except ImportError:
+    SentenceTransformer = None
 
 
 class LocalSentenceEmbedder:
@@ -26,6 +30,8 @@ class LocalSentenceEmbedder:
     def model(self):
         """Lazy-load the model to avoid loading at import time."""
         if self._model is None:
+            if SentenceTransformer is None:
+                raise ImportError("sentence-transformers is not installed. Install with `pip install sentence-transformers`")
             self._model = SentenceTransformer(self.model_name)
         return self._model
 
