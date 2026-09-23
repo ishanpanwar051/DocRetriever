@@ -1,11 +1,14 @@
 # 🧠 DocuMind — Enterprise Multimodal RAG with Visual Citations, Voice Engine & Document Insights
 
+[![Live Demo](https://img.shields.io/badge/🚀%20Live%20Demo-DocuMind%20Online-success?style=for-the-badge&logo=cloudflare)](https://demographic-tax-maiden-oasis.trycloudflare.com)
 [![Python 3.11](https://img.shields.io/badge/Python-3.11-blue.svg)](https://www.python.org/downloads/)
 [![PostgreSQL 16](https://img.shields.io/badge/PostgreSQL-16%20%2B%20pgvector-336791.svg)](https://github.com/pgvector/pgvector)
 [![Ollama](https://img.shields.io/badge/Ollama-llama3.2%3A3b%20%7C%20nomic--embed--text-black.svg)](https://ollama.com/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688.svg)](https://fastapi.tiangolo.com/)
 [![Edge-TTS](https://img.shields.io/badge/Voice-Edge--TTS%20Neural-purple.svg)](https://github.com/rany2/edge-tts)
 [![RAGAS](https://img.shields.io/badge/RAGAS-0.2.9-orange.svg)](https://github.com/explodinggradients/ragas)
+
+> 🌐 **Try the Live Application:** [https://demographic-tax-maiden-oasis.trycloudflare.com](https://demographic-tax-maiden-oasis.trycloudflare.com)
 
 **DocuMind** is a production-grade Enterprise Retrieval-Augmented Generation (RAG) platform featuring **dynamic PDF upload with Markdown table preservation**, **sub-200ms real-time token streaming (SSE)**, **multilingual cross-lingual querying**, **voice-to-voice audio engine**, **automated document intelligence analytics**, and **100% air-gapped offline privacy mode**.
 
