@@ -353,20 +353,63 @@ def fetch_documents():
     return []
 
 
+VOICE_MAP = {
+    "en": "en-US-ChristopherNeural",
+    "hi": "hi-IN-MadhurNeural",
+    "es": "es-ES-AlvaroNeural",
+    "de": "de-DE-KillianNeural",
+    "fr": "fr-FR-HenriNeural",
+    "ja": "ja-JP-KeitaNeural",
+    "zh": "zh-CN-YunxiNeural",
+}
+
+
 def synthesize_audio(text: str, language: str = "en") -> bytes | None:
-    """Calls backend voice synthesis endpoint to obtain neural MP3 audio."""
+    """Calls backend voice endpoint, with direct resilient edge-tts local fallback."""
+    clean_text = text[:1500].replace("*", "").replace("#", "").replace("|", " ").replace("`", "").strip()
+    if not clean_text:
+        return None
+
+    # 1. Attempt backend API first
     try:
-        clean_text = text[:1500].replace("*", "").replace("#", "").replace("|", " ")
         r = httpx.post(
             f"{API_BASE}/api/voice/synthesize",
             json={"text": clean_text, "language": language},
-            timeout=15.0,
+            timeout=4.0,
         )
         if r.status_code == 200:
             return r.content
     except Exception:
         pass
+
+    # 2. Direct edge-tts fallback (zero-dependency on backend)
+    try:
+        import asyncio
+        import io
+        import edge_tts
+
+        lang_code = (language or "en").lower().strip()
+        voice_name = VOICE_MAP.get(lang_code, VOICE_MAP["en"])
+
+        async def _run_tts():
+            comm = edge_tts.Communicate(clean_text, voice_name)
+            buf = io.BytesIO()
+            async for chunk in comm.stream():
+                if chunk["type"] == "audio":
+                    buf.write(chunk["data"])
+            return buf.getvalue()
+
+        try:
+            return asyncio.run(_run_tts())
+        except RuntimeError:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            return loop.run_until_complete(_run_tts())
+    except Exception:
+        pass
+
     return None
+
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -523,6 +566,18 @@ with st.sidebar:
     # 6. Voice Output Toggle
     voice_out = st.toggle("🎙️ Neural Voice Output", value=st.session_state.voice_output_enabled, help="Plays natural neural audio response using Edge-TTS.")
     st.session_state.voice_output_enabled = voice_out
+    if voice_out:
+        if st.button("🔊 Test Voice (Play Sample)", use_container_width=True):
+            sample_phrase = "Hello! DocuMind Neural Voice Engine is active. Every question you ask will be answered and spoken out loud."
+            if selected_lang_code == "hi":
+                sample_phrase = "नमस्ते! डॉक्यूमाइंड वॉइस इंजन सक्रिय है। आपके हर सवाल का जवाब बोलकर दिया जाएगा।"
+            test_audio = synthesize_audio(sample_phrase, language=selected_lang_code if selected_lang_code != "auto" else "en")
+            if test_audio:
+                st.audio(test_audio, format="audio/mp3", autoplay=True)
+                st.caption("✅ Playing live voice sample")
+            else:
+                st.caption("⚠️ Voice engine connecting...")
+
 
     st.markdown("---")
 
