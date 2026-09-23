@@ -84,6 +84,8 @@ if "latest_audio_b64" not in st.session_state:
 # Custom CSS for World-Class SaaS Aesthetics
 CUSTOM_CSS = """
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap');
+
 /* Hide standard Streamlit header, footer, and deploy button */
 #MainMenu {visibility: hidden;}
 footer {visibility: hidden;}
@@ -95,8 +97,10 @@ header {visibility: hidden;}
 .stApp {
     background-color: #09090b;
     color: #f4f4f5;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", Helvetica, Arial, sans-serif;
+    font-family: 'Inter', 'Noto Sans Devanagari', 'Nirmala UI', 'Segoe UI', Roboto, sans-serif;
+    letter-spacing: -0.01em;
 }
+
 
 /* Glassmorphic Sidebar */
 [data-testid="stSidebar"] {
@@ -278,6 +282,7 @@ header {visibility: hidden;}
 
 /* Buttons Smooth Transitions */
 .stButton > button {
+    font-family: 'Inter', 'Noto Sans Devanagari', 'Nirmala UI', 'Segoe UI', sans-serif !important;
     background-color: #18181b;
     color: #fafafa;
     border: 1px solid rgba(255, 255, 255, 0.12);
@@ -640,8 +645,8 @@ with tab_chat:
         st.session_state.prompt_query = "Summarize the key metrics and numerical data from the tables in the document."
     if qc2.button("🔒 Authentication & Security Workflows", use_container_width=True):
         st.session_state.prompt_query = "How do you implement OAuth2 with password bearer and JWT in FastAPI?"
-    if qc3.button("🌐 Hindi: कंपनी का कुल मुनाफा कितना था?", use_container_width=True):
-        st.session_state.prompt_query = "कंपनी का कुल मुनाफा और वित्तीय प्रदर्शन क्या रहा?"
+    if qc3.button("🌐 Hindi: Company Profit & Financials", use_container_width=True):
+        st.session_state.prompt_query = "कंपनी का कुल मुनाफा और वित्तीय प्रदर्शन क्या रहा? (Net Profit & Revenue Analysis)"
 
     # Conversation History Rendering
     for msg in st.session_state.chat_history:
@@ -885,12 +890,13 @@ with tab_chat:
                     # No document uploaded yet — guide the user and provide knowledge base response
                     if is_hindi:
                         accumulated_text = (
-                            f"### ℹ️ **दस्तावेज़ अभी अपलोड नहीं किया गया है**\n\n"
-                            f"आपने अभी तक कोई PDF अपलोड नहीं किया है। कृपया **बाएं साइडबार (Left Sidebar)** में **'Drop PDF with Tables / Reports'** पर अपनी PDF फाइल ड्रैग करें।\n\n"
-                            f"**डॉक्यूमाइंड सिस्टम विशेषताएं:**\n"
-                            f"- 📄 **मल्टीमॉडल इनजेशन:** तालिकाओं को सुरक्षित रखते हुए डेटा निकालता है।\n"
-                            f"- 🎯 **सटीक उत्तर:** 1-indexed पेज नंबर और मैच स्कोर के साथ उत्तर देता है।\n"
-                            f"- 🎙️ **वॉइस सपोर्ट:** न्यूरल वॉइस में उत्तर सुनाता है।"
+                            f"### 📑 **कोई दस्तावेज़ (PDF) अपलोड नहीं मिला**\n\n"
+                            f"सटीक वित्तीय विश्लेषण और लाभ (Net Profit / Revenue) जानने के लिए, कृपया बाईं ओर **'Drop PDF with Tables / Reports'** में अपनी PDF फ़ाइल अपलोड करें।\n\n"
+                            f"📌 **DocuMind की मुख्य विशेषताएं:**\n\n"
+                            f"1. **📊 बैलेंस शीट और टेबल एक्सट्रैक्शन:** वित्तीय तालिकाओं को बिना किसी त्रुटि के प्रोसेस करता है।\n"
+                            f"2. **🎯 पेज साइटेशन:** हर उत्तर के साथ सटीक पेज नंबर और सोर्स का संदर्भ देता है।\n"
+                            f"3. **🎙️ न्यूरल वॉइस आउटपुट:** रिपोर्ट के मुख्य निष्कर्षों को बोलकर सुनाता है।\n\n"
+                            f"💡 *सलाह: साइडबार से कोई भी रिपोर्ट या बैलेंस शीट अपलोड करके फिर से पूछें!*"
                         )
                     else:
                         accumulated_text = (
